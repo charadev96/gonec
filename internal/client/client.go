@@ -11,21 +11,21 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"github.com/charadev96/gonec/internal/shared"
+	"github.com/charadev96/gonec/internal/client/domain"
 )
 
 type Client struct {
-	ConnServerID   string
-	ServerRegistry shared.ServerRegistryTOML
-	Logger         *zerolog.Logger
+	ConnServerID string
+	RepoPins     domain.PinRepository
+	Logger       *zerolog.Logger
 
 	UserTrustCertificate func(*x509.Certificate) bool
 }
 
 func (c *Client) DialServer(id string) error {
-	server, ok := c.ServerRegistry.Get(id)
-	if !ok {
-		return fmt.Errorf("server '%v' not found in registry", id)
+	server, err := c.RepoPins.Get(id)
+	if err != nil {
+		return fmt.Errorf("failed to get server pin '%s': %w", id, err)
 	}
 	c.ConnServerID = id
 
@@ -57,9 +57,9 @@ func (c *Client) DialServer(id string) error {
 }
 
 func (c *Client) verifyServerCertificate(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
-	server, ok := c.ServerRegistry.Get(c.ConnServerID)
-	if !ok {
-		return fmt.Errorf("server '%v' not found in registry", c.ConnServerID)
+	server, err := c.RepoPins.Get(c.ConnServerID)
+	if err != nil {
+		return fmt.Errorf("failed to get server pin '%s': %w", c.ConnServerID, err)
 	}
 
 	tcpAddr, err := net.ResolveTCPAddr("tcp", server.IPAddress)
@@ -97,7 +97,7 @@ func (c *Client) verifyServerCertificate(rawCerts [][]byte, verifiedChains [][]*
 		)
 	}
 
-	if ok = ed25519.Verify(server.PublicKey.Value(), cert.RawTBSCertificate, cert.Signature); !ok {
+	if ok = ed25519.Verify(server.PublicKey, cert.RawTBSCertificate, cert.Signature); !ok {
 		c.Logger.Warn().
 			Msg("certificate signature mismatch")
 		if c.UserTrustCertificate == nil {
@@ -110,8 +110,8 @@ func (c *Client) verifyServerCertificate(rawCerts [][]byte, verifiedChains [][]*
 			return fmt.Errorf("failed to verify certificate: signature denied by user")
 		}
 
-		server.PublicKey.Update(key)
-		if err = c.ServerRegistry.SaveFile(); err != nil {
+		server.PublicKey = key
+		if err = c.RepoPins.Set(server.ID, server); err != nil {
 			return fmt.Errorf("failed to save server registry: %w", err)
 		}
 		c.Logger.Info().
