@@ -6,11 +6,14 @@ import (
 	"net"
 
 	"github.com/rs/zerolog"
+
+	"github.com/charadev96/gonec/internal/server/service"
 )
 
 type Server struct {
 	Addr        string
 	Certificate tls.Certificate
+	UserService *service.UserService
 	Logger      *zerolog.Logger
 }
 
