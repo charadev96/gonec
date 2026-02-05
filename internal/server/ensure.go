@@ -163,7 +163,7 @@ func generateCertificateFile(
 	}
 	_, err = certFile.Write(certBuf.Bytes())
 	if err != nil {
-		return nil, fmt.Errorf("failed to write certificate PEM file to disk: %w")
+		return nil, fmt.Errorf("failed to write certificate PEM file to disk: %w", err)
 	}
 
 	return certBuf.Bytes(), nil
