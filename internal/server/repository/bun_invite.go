@@ -8,6 +8,7 @@ import (
 
 	"database/sql"
 	"github.com/google/uuid"
+	"github.com/jinzhu/copier"
 	"github.com/uptrace/bun"
 
 	server "github.com/charadev96/gonec/internal/server/domain"
@@ -37,7 +38,7 @@ func NewBunUserInviteRepository(ctx context.Context, db *bun.DB) (*BunUserInvite
 func (r *BunUserInviteRepository) Save(ctx context.Context, inv server.UserInvite) error {
 	tx := infra.ExtractTx(ctx, r.db)
 	i := new(userInvite)
-	i.fromDomain(inv)
+	copier.Copy(i, &inv)
 	_, err := tx.NewInsert().
 		Model(i).
 		Exec(ctx)
@@ -50,6 +51,7 @@ func (r *BunUserInviteRepository) Save(ctx context.Context, inv server.UserInvit
 func (r *BunUserInviteRepository) GetByUserID(ctx context.Context, id uuid.UUID) (server.UserInvite, error) {
 	tx := infra.ExtractTx(ctx, r.db)
 	i := new(userInvite)
+	inv := server.UserInvite{}
 	err := tx.NewSelect().
 		Model(i).
 		Where("user_id = ?", id).
@@ -58,9 +60,10 @@ func (r *BunUserInviteRepository) GetByUserID(ctx context.Context, id uuid.UUID)
 		if errors.Is(err, sql.ErrNoRows) {
 			err = domain.ErrNotExist
 		}
-		return server.UserInvite{}, fmt.Errorf("failed to get invite: %w", err)
+		return inv, fmt.Errorf("failed to get invite: %w", err)
 	}
-	return i.toDomain(), nil
+	copier.Copy(&inv, i)
+	return inv, nil
 }
 
 func (r *BunUserInviteRepository) Delete(ctx context.Context, id uuid.UUID) error {
@@ -81,20 +84,4 @@ type userInvite struct {
 	Token     []byte    `bun:",unique,nullzero"`
 	NotBefore time.Time
 	NotAfter  time.Time
-}
-
-func (i *userInvite) toDomain() server.UserInvite {
-	return server.UserInvite{
-		UserID:    i.UserID,
-		Token:     i.Token,
-		NotBefore: i.NotBefore,
-		NotAfter:  i.NotAfter,
-	}
-}
-
-func (i *userInvite) fromDomain(invite server.UserInvite) {
-	i.UserID = invite.UserID
-	i.Token = invite.Token
-	i.NotBefore = invite.NotBefore
-	i.NotAfter = invite.NotAfter
 }
