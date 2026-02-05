@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jinzhu/copier"
 	"github.com/uptrace/bun"
 
 	server "github.com/charadev96/gonec/internal/server/domain"
@@ -50,6 +51,7 @@ func (r *BunUserRepository) Create(ctx context.Context) (uuid.UUID, error) {
 func (r *BunUserRepository) GetByID(ctx context.Context, id uuid.UUID) (server.User, error) {
 	tx := infra.ExtractTx(ctx, r.db)
 	u := new(user)
+	usr := server.User{}
 	err := tx.NewSelect().
 		Model(u).
 		Where("id = ?", id).
@@ -58,14 +60,16 @@ func (r *BunUserRepository) GetByID(ctx context.Context, id uuid.UUID) (server.U
 		if errors.Is(err, sql.ErrNoRows) {
 			err = domain.ErrNotExist
 		}
-		return server.User{}, fmt.Errorf("failed to get user: %w", err)
+		return usr, fmt.Errorf("failed to get user: %w", err)
 	}
-	return u.toDomain(), nil
+	copier.Copy(&usr, u)
+	return usr, nil
 }
 
 func (r *BunUserRepository) GetByName(ctx context.Context, name string) (server.User, error) {
 	tx := infra.ExtractTx(ctx, r.db)
 	u := new(user)
+	usr := server.User{}
 	err := tx.NewSelect().
 		Model(u).
 		Where("name = ?", name).
@@ -74,9 +78,10 @@ func (r *BunUserRepository) GetByName(ctx context.Context, name string) (server.
 		if errors.Is(err, sql.ErrNoRows) {
 			err = domain.ErrNotExist
 		}
-		return server.User{}, fmt.Errorf("failed to get user: %w", err)
+		return usr, fmt.Errorf("failed to get user: %w", err)
 	}
-	return u.toDomain(), nil
+	copier.Copy(&usr, u)
+	return usr, nil
 }
 
 func (r *BunUserRepository) UpdateName(ctx context.Context, id uuid.UUID, name string) error {
@@ -141,20 +146,4 @@ type user struct {
 	Name      string            `bun:",unique,nullzero"`
 	PublicKey ed25519.PublicKey `bun:",unique,nullzero"`
 	State     server.UserState  `bun:",notnull"`
-}
-
-func (u *user) toDomain() server.User {
-	return server.User{
-		ID:        u.ID,
-		Name:      u.Name,
-		PublicKey: u.PublicKey,
-		State:     u.State,
-	}
-}
-
-func (u *user) fromDomain(user server.User) {
-	u.ID = user.ID
-	u.Name = user.Name
-	u.PublicKey = user.PublicKey
-	u.State = user.State
 }
