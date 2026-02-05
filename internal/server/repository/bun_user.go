@@ -140,7 +140,7 @@ func (r *BunUserRepository) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 type user struct {
-	bun.BaseModel `bun:"table:users`
+	bun.BaseModel `bun:"table:users"`
 
 	ID        uuid.UUID         `bun:",pk"`
 	Name      string            `bun:",unique,nullzero"`
