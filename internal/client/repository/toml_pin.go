@@ -139,7 +139,7 @@ func (r *TOMLPinRepository) load() error {
 func (r *TOMLPinRepository) save() error {
 	file, err := os.OpenFile(r.FilePath, os.O_WRONLY|os.O_TRUNC, permRepository)
 	if err != nil {
-		return fmt.Errorf("failed to save repository: %w")
+		return fmt.Errorf("failed to save repository: %w", err)
 	}
 	enc := toml.NewEncoder(file)
 	enc.Indent = ""
