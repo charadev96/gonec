@@ -22,10 +22,21 @@ type User struct {
 	State     UserState
 }
 
+type UserListQuery struct {
+	Limit  int
+	Cursor uuid.UUID
+}
+
+type UserList struct {
+	Users  []User
+	Cursor uuid.UUID
+}
+
 type UserRepository interface {
 	Create(ctx context.Context) (uuid.UUID, error)
 	GetByID(ctx context.Context, id uuid.UUID) (User, error)
 	GetByName(ctx context.Context, name string) (User, error)
+	List(ctx context.Context, q UserListQuery) (UserList, error)
 	UpdateName(ctx context.Context, id uuid.UUID, name string) error
 	UpdatePublicKey(ctx context.Context, id uuid.UUID, pk ed25519.PublicKey) error
 	UpdateState(ctx context.Context, id uuid.UUID, s UserState) error

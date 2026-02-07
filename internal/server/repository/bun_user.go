@@ -84,6 +84,30 @@ func (r *BunUserRepository) GetByName(ctx context.Context, name string) (server.
 	return usr, nil
 }
 
+func (r *BunUserRepository) List(ctx context.Context, q server.UserListQuery) (server.UserList, error) {
+	var users []server.User
+	query := r.db.NewSelect().
+		Model(&users).
+		Limit(q.Limit + 1).
+		Order("id ASC")
+	if q.Cursor != uuid.Nil {
+		query = query.Where("id > ?", q.Cursor)
+	}
+	if err := query.Scan(ctx); err != nil {
+		return server.UserList{}, err
+	}
+
+	var next uuid.UUID
+	if len(users) > q.Limit {
+		users = users[:q.Limit]
+		next = users[len(users)-1].ID
+	}
+	return server.UserList{
+		Users:  users,
+		Cursor: next,
+	}, nil
+}
+
 func (r *BunUserRepository) UpdateName(ctx context.Context, id uuid.UUID, name string) error {
 	tx := infra.ExtractTx(ctx, r.db)
 	u := &user{ID: id, Name: name}
