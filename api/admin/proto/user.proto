@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package gonec.admin.v1;
+
+option go_package = "github.com/charadev96/gonec/api/admin/gen";
+
+service UserService {
+  rpc CreateUser(CreateUserRequest) returns (CreateUserReply);
+  rpc CreateInvite(CreateInviteRequest) returns (CreateInviteReply);
+
+  rpc GetUserByID(GetByIDRequest) returns (GetUserReply);
+  rpc GetUserByName(GetByNameRequest) returns (GetUserReply);
+  rpc GetInviteByUserID(GetByIDRequest) returns (GetInviteReply);
+
+  rpc ListUsers(ListUsersRequest) returns (ListUsersReply);
+
+  rpc DeleteUser(DeleteRequest) returns (DeleteReply);
+  rpc DeleteInvite(DeleteRequest) returns (DeleteReply);
+}
+
+enum UserState {
+  USER_STATE_PENDING_UNSPECIFIED = 0;
+  USER_STATE_REGISTERED = 1;
+  USER_STATE_ACTIVE = 2;
+}
+
+message User {
+  string id = 1;
+  string name = 2;
+  bytes public_key = 3;
+  UserState state = 4;
+}
+
+message UserInvite {
+  string user_id = 1;
+  bytes token = 2;
+  google.protobuf.Timestamp not_before = 3;
+  google.protobuf.Timestamp not_after = 4;
+}
+
+message CreateUserRequest {}
+
+message CreateUserReply {
+  string id = 1;
+}
+
+message CreateInviteRequest {
+  string id = 1;
+  google.protobuf.Timestamp not_before = 2;
+  google.protobuf.Timestamp not_after = 3;
+}
+
+message CreateInviteReply {
+  UserInvite invite = 1;
+}
+
+message GetByIDRequest {
+  string id = 1;
+}
+
+message GetByNameRequest {
+  string name = 2;
+}
+
+message GetUserReply {
+  User user = 1;
+}
+
+message GetInviteReply {
+  UserInvite invite = 1;
+}
+
+message ListUsersRequest {
+  uint32 limit = 1;
+  string cursor = 2;
+}
+
+message ListUsersReply {
+  repeated User users = 1;
+  string cursor = 2;
+}
+
+message DeleteRequest {
+  string id = 1;
+}
+
+message DeleteReply {}

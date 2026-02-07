@@ -28,9 +28,10 @@ type CreateInviteOptions struct {
 	NotAfter  time.Time
 }
 
-func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts CreateInviteOptions) ([]byte, error) {
+func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts CreateInviteOptions) (server.UserInvite, error) {
+	inv := server.UserInvite{}
 	if _, err := s.Users.GetByID(ctx, id); err != nil && errors.Is(err, domain.ErrNotExist) {
-		return nil, err
+		return inv, err
 	}
 
 	rnd := s.Rand
@@ -40,20 +41,21 @@ func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts Creat
 	tok := make([]byte, 32)
 	_, err := rnd.Read(tok)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate invite token: %w", err)
+		return inv, fmt.Errorf("failed to generate invite token: %w", err)
 	}
 
-	if opts.NotBefore.IsZero() {
+	unix := time.Unix(0, 0).UTC()
+	if opts.NotBefore.IsZero() || opts.NotBefore.Equal(unix) {
 		opts.NotBefore = time.Now()
 	}
-	if opts.NotAfter.IsZero() {
+	if opts.NotAfter.IsZero() || opts.NotAfter.Equal(unix) {
 		opts.NotAfter = time.Now().AddDate(0, 0, 1)
 	}
 	if opts.NotAfter.Before(opts.NotBefore) {
-		return nil, fmt.Errorf("invalid invite time period, NotAfter must be after NotBefore")
+		return inv, fmt.Errorf("invalid invite time period, NotAfter must be after NotBefore")
 	}
 
-	inv := server.UserInvite{
+	inv = server.UserInvite{
 		UserID:    id,
 		Token:     tok,
 		NotBefore: opts.NotBefore,
@@ -61,10 +63,10 @@ func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts Creat
 	}
 
 	if err := s.Invites.Save(ctx, inv); err != nil {
-		return nil, err
+		return inv, err
 	}
 
-	return tok, nil
+	return inv, nil
 }
 
 func (s *UserService) RegisterUser(ctx context.Context, id uuid.UUID, tok []byte, pk ed25519.PublicKey) error {
@@ -111,7 +113,7 @@ func (s *UserService) RegisterUser(ctx context.Context, id uuid.UUID, tok []byte
 	})
 }
 
-func (s *UserService) PurgeUser(ctx context.Context, id uuid.UUID) error {
+func (s *UserService) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	return s.TXRunner.Exec(ctx, func(ctx context.Context) error {
 		if err := s.Users.Delete(ctx, id); err != nil {
 			return err
