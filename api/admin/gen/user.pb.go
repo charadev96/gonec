@@ -71,6 +71,58 @@ func (UserState) EnumDescriptor() ([]byte, []int) {
 	return file_user_proto_rawDescGZIP(), []int{0}
 }
 
+type ServerPublicIdentity struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	IpAddress     string                 `protobuf:"bytes,1,opt,name=ip_address,json=ipAddress,proto3" json:"ip_address,omitempty"`
+	PublicKey     []byte                 `protobuf:"bytes,2,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ServerPublicIdentity) Reset() {
+	*x = ServerPublicIdentity{}
+	mi := &file_user_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ServerPublicIdentity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ServerPublicIdentity) ProtoMessage() {}
+
+func (x *ServerPublicIdentity) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ServerPublicIdentity.ProtoReflect.Descriptor instead.
+func (*ServerPublicIdentity) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *ServerPublicIdentity) GetIpAddress() string {
+	if x != nil {
+		return x.IpAddress
+	}
+	return ""
+}
+
+func (x *ServerPublicIdentity) GetPublicKey() []byte {
+	if x != nil {
+		return x.PublicKey
+	}
+	return nil
+}
+
 type User struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -83,7 +135,7 @@ type User struct {
 
 func (x *User) Reset() {
 	*x = User{}
-	mi := &file_user_proto_msgTypes[0]
+	mi := &file_user_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -95,7 +147,7 @@ func (x *User) String() string {
 func (*User) ProtoMessage() {}
 
 func (x *User) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[0]
+	mi := &file_user_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -108,7 +160,7 @@ func (x *User) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use User.ProtoReflect.Descriptor instead.
 func (*User) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{0}
+	return file_user_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *User) GetId() string {
@@ -151,7 +203,7 @@ type UserInvite struct {
 
 func (x *UserInvite) Reset() {
 	*x = UserInvite{}
-	mi := &file_user_proto_msgTypes[1]
+	mi := &file_user_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -163,7 +215,7 @@ func (x *UserInvite) String() string {
 func (*UserInvite) ProtoMessage() {}
 
 func (x *UserInvite) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[1]
+	mi := &file_user_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -176,7 +228,7 @@ func (x *UserInvite) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserInvite.ProtoReflect.Descriptor instead.
 func (*UserInvite) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{1}
+	return file_user_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *UserInvite) GetUserId() string {
@@ -207,6 +259,58 @@ func (x *UserInvite) GetNotAfter() *timestamppb.Timestamp {
 	return nil
 }
 
+type UserInviteManifest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Server        *ServerPublicIdentity  `protobuf:"bytes,1,opt,name=server,proto3" json:"server,omitempty"`
+	Invite        *UserInvite            `protobuf:"bytes,2,opt,name=invite,proto3" json:"invite,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserInviteManifest) Reset() {
+	*x = UserInviteManifest{}
+	mi := &file_user_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserInviteManifest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserInviteManifest) ProtoMessage() {}
+
+func (x *UserInviteManifest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserInviteManifest.ProtoReflect.Descriptor instead.
+func (*UserInviteManifest) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *UserInviteManifest) GetServer() *ServerPublicIdentity {
+	if x != nil {
+		return x.Server
+	}
+	return nil
+}
+
+func (x *UserInviteManifest) GetInvite() *UserInvite {
+	if x != nil {
+		return x.Invite
+	}
+	return nil
+}
+
 type CreateUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -215,7 +319,7 @@ type CreateUserRequest struct {
 
 func (x *CreateUserRequest) Reset() {
 	*x = CreateUserRequest{}
-	mi := &file_user_proto_msgTypes[2]
+	mi := &file_user_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -227,7 +331,7 @@ func (x *CreateUserRequest) String() string {
 func (*CreateUserRequest) ProtoMessage() {}
 
 func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[2]
+	mi := &file_user_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -240,7 +344,7 @@ func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserRequest.ProtoReflect.Descriptor instead.
 func (*CreateUserRequest) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{2}
+	return file_user_proto_rawDescGZIP(), []int{4}
 }
 
 type CreateUserReply struct {
@@ -252,7 +356,7 @@ type CreateUserReply struct {
 
 func (x *CreateUserReply) Reset() {
 	*x = CreateUserReply{}
-	mi := &file_user_proto_msgTypes[3]
+	mi := &file_user_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -264,7 +368,7 @@ func (x *CreateUserReply) String() string {
 func (*CreateUserReply) ProtoMessage() {}
 
 func (x *CreateUserReply) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[3]
+	mi := &file_user_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -277,7 +381,7 @@ func (x *CreateUserReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserReply.ProtoReflect.Descriptor instead.
 func (*CreateUserReply) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{3}
+	return file_user_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CreateUserReply) GetId() string {
@@ -298,7 +402,7 @@ type CreateInviteRequest struct {
 
 func (x *CreateInviteRequest) Reset() {
 	*x = CreateInviteRequest{}
-	mi := &file_user_proto_msgTypes[4]
+	mi := &file_user_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -310,7 +414,7 @@ func (x *CreateInviteRequest) String() string {
 func (*CreateInviteRequest) ProtoMessage() {}
 
 func (x *CreateInviteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[4]
+	mi := &file_user_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -323,7 +427,7 @@ func (x *CreateInviteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateInviteRequest.ProtoReflect.Descriptor instead.
 func (*CreateInviteRequest) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{4}
+	return file_user_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CreateInviteRequest) GetId() string {
@@ -356,7 +460,7 @@ type CreateInviteReply struct {
 
 func (x *CreateInviteReply) Reset() {
 	*x = CreateInviteReply{}
-	mi := &file_user_proto_msgTypes[5]
+	mi := &file_user_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -368,7 +472,7 @@ func (x *CreateInviteReply) String() string {
 func (*CreateInviteReply) ProtoMessage() {}
 
 func (x *CreateInviteReply) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[5]
+	mi := &file_user_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -381,12 +485,100 @@ func (x *CreateInviteReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateInviteReply.ProtoReflect.Descriptor instead.
 func (*CreateInviteReply) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{5}
+	return file_user_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CreateInviteReply) GetInvite() *UserInvite {
 	if x != nil {
 		return x.Invite
+	}
+	return nil
+}
+
+type ExportInviteRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExportInviteRequest) Reset() {
+	*x = ExportInviteRequest{}
+	mi := &file_user_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExportInviteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExportInviteRequest) ProtoMessage() {}
+
+func (x *ExportInviteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExportInviteRequest.ProtoReflect.Descriptor instead.
+func (*ExportInviteRequest) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ExportInviteRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type ExportInviteReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Manifest      *UserInviteManifest    `protobuf:"bytes,1,opt,name=manifest,proto3" json:"manifest,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExportInviteReply) Reset() {
+	*x = ExportInviteReply{}
+	mi := &file_user_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExportInviteReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExportInviteReply) ProtoMessage() {}
+
+func (x *ExportInviteReply) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExportInviteReply.ProtoReflect.Descriptor instead.
+func (*ExportInviteReply) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ExportInviteReply) GetManifest() *UserInviteManifest {
+	if x != nil {
+		return x.Manifest
 	}
 	return nil
 }
@@ -400,7 +592,7 @@ type GetByIDRequest struct {
 
 func (x *GetByIDRequest) Reset() {
 	*x = GetByIDRequest{}
-	mi := &file_user_proto_msgTypes[6]
+	mi := &file_user_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -412,7 +604,7 @@ func (x *GetByIDRequest) String() string {
 func (*GetByIDRequest) ProtoMessage() {}
 
 func (x *GetByIDRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[6]
+	mi := &file_user_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -425,7 +617,7 @@ func (x *GetByIDRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetByIDRequest.ProtoReflect.Descriptor instead.
 func (*GetByIDRequest) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{6}
+	return file_user_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetByIDRequest) GetId() string {
@@ -444,7 +636,7 @@ type GetByNameRequest struct {
 
 func (x *GetByNameRequest) Reset() {
 	*x = GetByNameRequest{}
-	mi := &file_user_proto_msgTypes[7]
+	mi := &file_user_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -456,7 +648,7 @@ func (x *GetByNameRequest) String() string {
 func (*GetByNameRequest) ProtoMessage() {}
 
 func (x *GetByNameRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[7]
+	mi := &file_user_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -469,7 +661,7 @@ func (x *GetByNameRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetByNameRequest.ProtoReflect.Descriptor instead.
 func (*GetByNameRequest) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{7}
+	return file_user_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetByNameRequest) GetName() string {
@@ -488,7 +680,7 @@ type GetUserReply struct {
 
 func (x *GetUserReply) Reset() {
 	*x = GetUserReply{}
-	mi := &file_user_proto_msgTypes[8]
+	mi := &file_user_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -500,7 +692,7 @@ func (x *GetUserReply) String() string {
 func (*GetUserReply) ProtoMessage() {}
 
 func (x *GetUserReply) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[8]
+	mi := &file_user_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -513,7 +705,7 @@ func (x *GetUserReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserReply.ProtoReflect.Descriptor instead.
 func (*GetUserReply) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{8}
+	return file_user_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetUserReply) GetUser() *User {
@@ -532,7 +724,7 @@ type GetInviteReply struct {
 
 func (x *GetInviteReply) Reset() {
 	*x = GetInviteReply{}
-	mi := &file_user_proto_msgTypes[9]
+	mi := &file_user_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -544,7 +736,7 @@ func (x *GetInviteReply) String() string {
 func (*GetInviteReply) ProtoMessage() {}
 
 func (x *GetInviteReply) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[9]
+	mi := &file_user_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -557,7 +749,7 @@ func (x *GetInviteReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInviteReply.ProtoReflect.Descriptor instead.
 func (*GetInviteReply) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{9}
+	return file_user_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetInviteReply) GetInvite() *UserInvite {
@@ -577,7 +769,7 @@ type ListUsersRequest struct {
 
 func (x *ListUsersRequest) Reset() {
 	*x = ListUsersRequest{}
-	mi := &file_user_proto_msgTypes[10]
+	mi := &file_user_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -589,7 +781,7 @@ func (x *ListUsersRequest) String() string {
 func (*ListUsersRequest) ProtoMessage() {}
 
 func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[10]
+	mi := &file_user_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -602,7 +794,7 @@ func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListUsersRequest) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{10}
+	return file_user_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ListUsersRequest) GetLimit() uint32 {
@@ -629,7 +821,7 @@ type ListUsersReply struct {
 
 func (x *ListUsersReply) Reset() {
 	*x = ListUsersReply{}
-	mi := &file_user_proto_msgTypes[11]
+	mi := &file_user_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -641,7 +833,7 @@ func (x *ListUsersReply) String() string {
 func (*ListUsersReply) ProtoMessage() {}
 
 func (x *ListUsersReply) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[11]
+	mi := &file_user_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -654,7 +846,7 @@ func (x *ListUsersReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersReply.ProtoReflect.Descriptor instead.
 func (*ListUsersReply) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{11}
+	return file_user_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListUsersReply) GetUsers() []*User {
@@ -680,7 +872,7 @@ type DeleteRequest struct {
 
 func (x *DeleteRequest) Reset() {
 	*x = DeleteRequest{}
-	mi := &file_user_proto_msgTypes[12]
+	mi := &file_user_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -692,7 +884,7 @@ func (x *DeleteRequest) String() string {
 func (*DeleteRequest) ProtoMessage() {}
 
 func (x *DeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[12]
+	mi := &file_user_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -705,7 +897,7 @@ func (x *DeleteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRequest) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{12}
+	return file_user_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *DeleteRequest) GetId() string {
@@ -723,7 +915,7 @@ type DeleteReply struct {
 
 func (x *DeleteReply) Reset() {
 	*x = DeleteReply{}
-	mi := &file_user_proto_msgTypes[13]
+	mi := &file_user_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -735,7 +927,7 @@ func (x *DeleteReply) String() string {
 func (*DeleteReply) ProtoMessage() {}
 
 func (x *DeleteReply) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[13]
+	mi := &file_user_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -748,7 +940,7 @@ func (x *DeleteReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteReply.ProtoReflect.Descriptor instead.
 func (*DeleteReply) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{13}
+	return file_user_proto_rawDescGZIP(), []int{17}
 }
 
 var File_user_proto protoreflect.FileDescriptor
@@ -756,7 +948,12 @@ var File_user_proto protoreflect.FileDescriptor
 const file_user_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"user.proto\x12\x0egonec.admin.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"z\n" +
+	"user.proto\x12\x0egonec.admin.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"T\n" +
+	"\x14ServerPublicIdentity\x12\x1d\n" +
+	"\n" +
+	"ip_address\x18\x01 \x01(\tR\tipAddress\x12\x1d\n" +
+	"\n" +
+	"public_key\x18\x02 \x01(\fR\tpublicKey\"z\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
@@ -769,7 +966,10 @@ const file_user_proto_rawDesc = "" +
 	"\x05token\x18\x02 \x01(\fR\x05token\x129\n" +
 	"\n" +
 	"not_before\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tnotBefore\x127\n" +
-	"\tnot_after\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\bnotAfter\"\x13\n" +
+	"\tnot_after\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\bnotAfter\"\x86\x01\n" +
+	"\x12UserInviteManifest\x12<\n" +
+	"\x06server\x18\x01 \x01(\v2$.gonec.admin.v1.ServerPublicIdentityR\x06server\x122\n" +
+	"\x06invite\x18\x02 \x01(\v2\x1a.gonec.admin.v1.UserInviteR\x06invite\"\x13\n" +
 	"\x11CreateUserRequest\"!\n" +
 	"\x0fCreateUserReply\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x99\x01\n" +
@@ -779,7 +979,11 @@ const file_user_proto_rawDesc = "" +
 	"not_before\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tnotBefore\x127\n" +
 	"\tnot_after\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\bnotAfter\"G\n" +
 	"\x11CreateInviteReply\x122\n" +
-	"\x06invite\x18\x01 \x01(\v2\x1a.gonec.admin.v1.UserInviteR\x06invite\" \n" +
+	"\x06invite\x18\x01 \x01(\v2\x1a.gonec.admin.v1.UserInviteR\x06invite\"%\n" +
+	"\x13ExportInviteRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"S\n" +
+	"\x11ExportInviteReply\x12>\n" +
+	"\bmanifest\x18\x01 \x01(\v2\".gonec.admin.v1.UserInviteManifestR\bmanifest\" \n" +
 	"\x0eGetByIDRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"&\n" +
 	"\x10GetByNameRequest\x12\x12\n" +
@@ -800,11 +1004,12 @@ const file_user_proto_rawDesc = "" +
 	"\tUserState\x12\"\n" +
 	"\x1eUSER_STATE_PENDING_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15USER_STATE_REGISTERED\x10\x01\x12\x15\n" +
-	"\x11USER_STATE_ACTIVE\x10\x022\x8f\x05\n" +
+	"\x11USER_STATE_ACTIVE\x10\x022\xe7\x05\n" +
 	"\vUserService\x12P\n" +
 	"\n" +
 	"CreateUser\x12!.gonec.admin.v1.CreateUserRequest\x1a\x1f.gonec.admin.v1.CreateUserReply\x12V\n" +
-	"\fCreateInvite\x12#.gonec.admin.v1.CreateInviteRequest\x1a!.gonec.admin.v1.CreateInviteReply\x12K\n" +
+	"\fCreateInvite\x12#.gonec.admin.v1.CreateInviteRequest\x1a!.gonec.admin.v1.CreateInviteReply\x12V\n" +
+	"\fExportInvite\x12#.gonec.admin.v1.ExportInviteRequest\x1a!.gonec.admin.v1.ExportInviteReply\x12K\n" +
 	"\vGetUserByID\x12\x1e.gonec.admin.v1.GetByIDRequest\x1a\x1c.gonec.admin.v1.GetUserReply\x12O\n" +
 	"\rGetUserByName\x12 .gonec.admin.v1.GetByNameRequest\x1a\x1c.gonec.admin.v1.GetUserReply\x12S\n" +
 	"\x11GetInviteByUserID\x12\x1e.gonec.admin.v1.GetByIDRequest\x1a\x1e.gonec.admin.v1.GetInviteReply\x12M\n" +
@@ -826,56 +1031,65 @@ func file_user_proto_rawDescGZIP() []byte {
 }
 
 var file_user_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_user_proto_goTypes = []any{
 	(UserState)(0),                // 0: gonec.admin.v1.UserState
-	(*User)(nil),                  // 1: gonec.admin.v1.User
-	(*UserInvite)(nil),            // 2: gonec.admin.v1.UserInvite
-	(*CreateUserRequest)(nil),     // 3: gonec.admin.v1.CreateUserRequest
-	(*CreateUserReply)(nil),       // 4: gonec.admin.v1.CreateUserReply
-	(*CreateInviteRequest)(nil),   // 5: gonec.admin.v1.CreateInviteRequest
-	(*CreateInviteReply)(nil),     // 6: gonec.admin.v1.CreateInviteReply
-	(*GetByIDRequest)(nil),        // 7: gonec.admin.v1.GetByIDRequest
-	(*GetByNameRequest)(nil),      // 8: gonec.admin.v1.GetByNameRequest
-	(*GetUserReply)(nil),          // 9: gonec.admin.v1.GetUserReply
-	(*GetInviteReply)(nil),        // 10: gonec.admin.v1.GetInviteReply
-	(*ListUsersRequest)(nil),      // 11: gonec.admin.v1.ListUsersRequest
-	(*ListUsersReply)(nil),        // 12: gonec.admin.v1.ListUsersReply
-	(*DeleteRequest)(nil),         // 13: gonec.admin.v1.DeleteRequest
-	(*DeleteReply)(nil),           // 14: gonec.admin.v1.DeleteReply
-	(*timestamppb.Timestamp)(nil), // 15: google.protobuf.Timestamp
+	(*ServerPublicIdentity)(nil),  // 1: gonec.admin.v1.ServerPublicIdentity
+	(*User)(nil),                  // 2: gonec.admin.v1.User
+	(*UserInvite)(nil),            // 3: gonec.admin.v1.UserInvite
+	(*UserInviteManifest)(nil),    // 4: gonec.admin.v1.UserInviteManifest
+	(*CreateUserRequest)(nil),     // 5: gonec.admin.v1.CreateUserRequest
+	(*CreateUserReply)(nil),       // 6: gonec.admin.v1.CreateUserReply
+	(*CreateInviteRequest)(nil),   // 7: gonec.admin.v1.CreateInviteRequest
+	(*CreateInviteReply)(nil),     // 8: gonec.admin.v1.CreateInviteReply
+	(*ExportInviteRequest)(nil),   // 9: gonec.admin.v1.ExportInviteRequest
+	(*ExportInviteReply)(nil),     // 10: gonec.admin.v1.ExportInviteReply
+	(*GetByIDRequest)(nil),        // 11: gonec.admin.v1.GetByIDRequest
+	(*GetByNameRequest)(nil),      // 12: gonec.admin.v1.GetByNameRequest
+	(*GetUserReply)(nil),          // 13: gonec.admin.v1.GetUserReply
+	(*GetInviteReply)(nil),        // 14: gonec.admin.v1.GetInviteReply
+	(*ListUsersRequest)(nil),      // 15: gonec.admin.v1.ListUsersRequest
+	(*ListUsersReply)(nil),        // 16: gonec.admin.v1.ListUsersReply
+	(*DeleteRequest)(nil),         // 17: gonec.admin.v1.DeleteRequest
+	(*DeleteReply)(nil),           // 18: gonec.admin.v1.DeleteReply
+	(*timestamppb.Timestamp)(nil), // 19: google.protobuf.Timestamp
 }
 var file_user_proto_depIdxs = []int32{
 	0,  // 0: gonec.admin.v1.User.state:type_name -> gonec.admin.v1.UserState
-	15, // 1: gonec.admin.v1.UserInvite.not_before:type_name -> google.protobuf.Timestamp
-	15, // 2: gonec.admin.v1.UserInvite.not_after:type_name -> google.protobuf.Timestamp
-	15, // 3: gonec.admin.v1.CreateInviteRequest.not_before:type_name -> google.protobuf.Timestamp
-	15, // 4: gonec.admin.v1.CreateInviteRequest.not_after:type_name -> google.protobuf.Timestamp
-	2,  // 5: gonec.admin.v1.CreateInviteReply.invite:type_name -> gonec.admin.v1.UserInvite
-	1,  // 6: gonec.admin.v1.GetUserReply.user:type_name -> gonec.admin.v1.User
-	2,  // 7: gonec.admin.v1.GetInviteReply.invite:type_name -> gonec.admin.v1.UserInvite
-	1,  // 8: gonec.admin.v1.ListUsersReply.users:type_name -> gonec.admin.v1.User
-	3,  // 9: gonec.admin.v1.UserService.CreateUser:input_type -> gonec.admin.v1.CreateUserRequest
-	5,  // 10: gonec.admin.v1.UserService.CreateInvite:input_type -> gonec.admin.v1.CreateInviteRequest
-	7,  // 11: gonec.admin.v1.UserService.GetUserByID:input_type -> gonec.admin.v1.GetByIDRequest
-	8,  // 12: gonec.admin.v1.UserService.GetUserByName:input_type -> gonec.admin.v1.GetByNameRequest
-	7,  // 13: gonec.admin.v1.UserService.GetInviteByUserID:input_type -> gonec.admin.v1.GetByIDRequest
-	11, // 14: gonec.admin.v1.UserService.ListUsers:input_type -> gonec.admin.v1.ListUsersRequest
-	13, // 15: gonec.admin.v1.UserService.DeleteUser:input_type -> gonec.admin.v1.DeleteRequest
-	13, // 16: gonec.admin.v1.UserService.DeleteInvite:input_type -> gonec.admin.v1.DeleteRequest
-	4,  // 17: gonec.admin.v1.UserService.CreateUser:output_type -> gonec.admin.v1.CreateUserReply
-	6,  // 18: gonec.admin.v1.UserService.CreateInvite:output_type -> gonec.admin.v1.CreateInviteReply
-	9,  // 19: gonec.admin.v1.UserService.GetUserByID:output_type -> gonec.admin.v1.GetUserReply
-	9,  // 20: gonec.admin.v1.UserService.GetUserByName:output_type -> gonec.admin.v1.GetUserReply
-	10, // 21: gonec.admin.v1.UserService.GetInviteByUserID:output_type -> gonec.admin.v1.GetInviteReply
-	12, // 22: gonec.admin.v1.UserService.ListUsers:output_type -> gonec.admin.v1.ListUsersReply
-	14, // 23: gonec.admin.v1.UserService.DeleteUser:output_type -> gonec.admin.v1.DeleteReply
-	14, // 24: gonec.admin.v1.UserService.DeleteInvite:output_type -> gonec.admin.v1.DeleteReply
-	17, // [17:25] is the sub-list for method output_type
-	9,  // [9:17] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	19, // 1: gonec.admin.v1.UserInvite.not_before:type_name -> google.protobuf.Timestamp
+	19, // 2: gonec.admin.v1.UserInvite.not_after:type_name -> google.protobuf.Timestamp
+	1,  // 3: gonec.admin.v1.UserInviteManifest.server:type_name -> gonec.admin.v1.ServerPublicIdentity
+	3,  // 4: gonec.admin.v1.UserInviteManifest.invite:type_name -> gonec.admin.v1.UserInvite
+	19, // 5: gonec.admin.v1.CreateInviteRequest.not_before:type_name -> google.protobuf.Timestamp
+	19, // 6: gonec.admin.v1.CreateInviteRequest.not_after:type_name -> google.protobuf.Timestamp
+	3,  // 7: gonec.admin.v1.CreateInviteReply.invite:type_name -> gonec.admin.v1.UserInvite
+	4,  // 8: gonec.admin.v1.ExportInviteReply.manifest:type_name -> gonec.admin.v1.UserInviteManifest
+	2,  // 9: gonec.admin.v1.GetUserReply.user:type_name -> gonec.admin.v1.User
+	3,  // 10: gonec.admin.v1.GetInviteReply.invite:type_name -> gonec.admin.v1.UserInvite
+	2,  // 11: gonec.admin.v1.ListUsersReply.users:type_name -> gonec.admin.v1.User
+	5,  // 12: gonec.admin.v1.UserService.CreateUser:input_type -> gonec.admin.v1.CreateUserRequest
+	7,  // 13: gonec.admin.v1.UserService.CreateInvite:input_type -> gonec.admin.v1.CreateInviteRequest
+	9,  // 14: gonec.admin.v1.UserService.ExportInvite:input_type -> gonec.admin.v1.ExportInviteRequest
+	11, // 15: gonec.admin.v1.UserService.GetUserByID:input_type -> gonec.admin.v1.GetByIDRequest
+	12, // 16: gonec.admin.v1.UserService.GetUserByName:input_type -> gonec.admin.v1.GetByNameRequest
+	11, // 17: gonec.admin.v1.UserService.GetInviteByUserID:input_type -> gonec.admin.v1.GetByIDRequest
+	15, // 18: gonec.admin.v1.UserService.ListUsers:input_type -> gonec.admin.v1.ListUsersRequest
+	17, // 19: gonec.admin.v1.UserService.DeleteUser:input_type -> gonec.admin.v1.DeleteRequest
+	17, // 20: gonec.admin.v1.UserService.DeleteInvite:input_type -> gonec.admin.v1.DeleteRequest
+	6,  // 21: gonec.admin.v1.UserService.CreateUser:output_type -> gonec.admin.v1.CreateUserReply
+	8,  // 22: gonec.admin.v1.UserService.CreateInvite:output_type -> gonec.admin.v1.CreateInviteReply
+	10, // 23: gonec.admin.v1.UserService.ExportInvite:output_type -> gonec.admin.v1.ExportInviteReply
+	13, // 24: gonec.admin.v1.UserService.GetUserByID:output_type -> gonec.admin.v1.GetUserReply
+	13, // 25: gonec.admin.v1.UserService.GetUserByName:output_type -> gonec.admin.v1.GetUserReply
+	14, // 26: gonec.admin.v1.UserService.GetInviteByUserID:output_type -> gonec.admin.v1.GetInviteReply
+	16, // 27: gonec.admin.v1.UserService.ListUsers:output_type -> gonec.admin.v1.ListUsersReply
+	18, // 28: gonec.admin.v1.UserService.DeleteUser:output_type -> gonec.admin.v1.DeleteReply
+	18, // 29: gonec.admin.v1.UserService.DeleteInvite:output_type -> gonec.admin.v1.DeleteReply
+	21, // [21:30] is the sub-list for method output_type
+	12, // [12:21] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_user_proto_init() }
@@ -889,7 +1103,7 @@ func file_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_proto_rawDesc), len(file_user_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   14,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

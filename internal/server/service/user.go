@@ -17,6 +17,7 @@ import (
 )
 
 type UserService struct {
+	Server   shared.ServerPublicIdentity
 	Users    server.UserRepository
 	Invites  server.UserInviteRepository
 	TXRunner shared.TransactionRunner
@@ -67,6 +68,21 @@ func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts Creat
 	}
 
 	return inv, nil
+}
+
+func (s *UserService) ExportInvite(ctx context.Context, id uuid.UUID) (shared.UserInviteManifest, error) {
+	mnf := shared.UserInviteManifest{}
+	inv, err := s.Invites.GetByUserID(ctx, id)
+	if err != nil && errors.Is(err, shared.ErrNotExist) {
+		return mnf, err
+	}
+
+	mnf = shared.UserInviteManifest{
+		Server: s.Server,
+		Invite: inv,
+	}
+
+	return mnf, nil
 }
 
 func (s *UserService) RegisterUser(ctx context.Context, id uuid.UUID, tok []byte, pk ed25519.PublicKey) error {

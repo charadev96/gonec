@@ -10,6 +10,7 @@ import (
 	"github.com/BurntSushi/toml"
 
 	client "github.com/charadev96/gonec/internal/client/domain"
+	shared "github.com/charadev96/gonec/internal/shared/domain"
 )
 
 const (
@@ -100,15 +101,17 @@ type serverPin struct {
 
 func (p *serverPin) toDomain(id string) client.ServerPin {
 	return client.ServerPin{
-		ID:        id,
-		IPAddress: p.IPAddress,
-		PublicKey: p.PublicKey.value,
+		ID: id,
+		Identity: shared.ServerPublicIdentity{
+			IPAddress: p.IPAddress,
+			PublicKey: p.PublicKey.value,
+		},
 	}
 }
 
 func (p *serverPin) fromDomain(pin client.ServerPin) {
-	p.IPAddress = pin.IPAddress
-	p.PublicKey = publicKey{value: pin.PublicKey}
+	p.IPAddress = pin.Identity.IPAddress
+	p.PublicKey = publicKey{value: pin.Identity.PublicKey}
 }
 
 type schema struct {
