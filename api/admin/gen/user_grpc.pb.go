@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	UserService_CreateUser_FullMethodName        = "/gonec.admin.v1.UserService/CreateUser"
 	UserService_CreateInvite_FullMethodName      = "/gonec.admin.v1.UserService/CreateInvite"
+	UserService_ExportInvite_FullMethodName      = "/gonec.admin.v1.UserService/ExportInvite"
 	UserService_GetUserByID_FullMethodName       = "/gonec.admin.v1.UserService/GetUserByID"
 	UserService_GetUserByName_FullMethodName     = "/gonec.admin.v1.UserService/GetUserByName"
 	UserService_GetInviteByUserID_FullMethodName = "/gonec.admin.v1.UserService/GetInviteByUserID"
@@ -35,6 +36,7 @@ const (
 type UserServiceClient interface {
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserReply, error)
 	CreateInvite(ctx context.Context, in *CreateInviteRequest, opts ...grpc.CallOption) (*CreateInviteReply, error)
+	ExportInvite(ctx context.Context, in *ExportInviteRequest, opts ...grpc.CallOption) (*ExportInviteReply, error)
 	GetUserByID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*GetUserReply, error)
 	GetUserByName(ctx context.Context, in *GetByNameRequest, opts ...grpc.CallOption) (*GetUserReply, error)
 	GetInviteByUserID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*GetInviteReply, error)
@@ -65,6 +67,16 @@ func (c *userServiceClient) CreateInvite(ctx context.Context, in *CreateInviteRe
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateInviteReply)
 	err := c.cc.Invoke(ctx, UserService_CreateInvite_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ExportInvite(ctx context.Context, in *ExportInviteRequest, opts ...grpc.CallOption) (*ExportInviteReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExportInviteReply)
+	err := c.cc.Invoke(ctx, UserService_ExportInvite_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -137,6 +149,7 @@ func (c *userServiceClient) DeleteInvite(ctx context.Context, in *DeleteRequest,
 type UserServiceServer interface {
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserReply, error)
 	CreateInvite(context.Context, *CreateInviteRequest) (*CreateInviteReply, error)
+	ExportInvite(context.Context, *ExportInviteRequest) (*ExportInviteReply, error)
 	GetUserByID(context.Context, *GetByIDRequest) (*GetUserReply, error)
 	GetUserByName(context.Context, *GetByNameRequest) (*GetUserReply, error)
 	GetInviteByUserID(context.Context, *GetByIDRequest) (*GetInviteReply, error)
@@ -158,6 +171,9 @@ func (UnimplementedUserServiceServer) CreateUser(context.Context, *CreateUserReq
 }
 func (UnimplementedUserServiceServer) CreateInvite(context.Context, *CreateInviteRequest) (*CreateInviteReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateInvite not implemented")
+}
+func (UnimplementedUserServiceServer) ExportInvite(context.Context, *ExportInviteRequest) (*ExportInviteReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ExportInvite not implemented")
 }
 func (UnimplementedUserServiceServer) GetUserByID(context.Context, *GetByIDRequest) (*GetUserReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserByID not implemented")
@@ -230,6 +246,24 @@ func _UserService_CreateInvite_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).CreateInvite(ctx, req.(*CreateInviteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ExportInvite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExportInviteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ExportInvite(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ExportInvite_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ExportInvite(ctx, req.(*ExportInviteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -356,6 +390,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateInvite",
 			Handler:    _UserService_CreateInvite_Handler,
+		},
+		{
+			MethodName: "ExportInvite",
+			Handler:    _UserService_ExportInvite_Handler,
 		},
 		{
 			MethodName: "GetUserByID",

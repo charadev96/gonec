@@ -49,6 +49,20 @@ func (h *UserServiceHandler) CreateInvite(ctx context.Context, req *gen.CreateIn
 	return &gen.CreateInviteReply{Invite: i}, nil
 }
 
+func (h *UserServiceHandler) ExportInvite(ctx context.Context, req *gen.ExportInviteRequest) (*gen.ExportInviteReply, error) {
+	id, err := uuid.Parse(req.Id)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	mnf, err := h.Service.ExportInvite(ctx, id)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	m := new(gen.UserInviteManifest)
+	copier.Copy(m, &mnf)
+	return &gen.ExportInviteReply{Manifest: m}, nil
+}
+
 func (h *UserServiceHandler) GetUserByID(ctx context.Context, req *gen.GetByIDRequest) (*gen.GetUserReply, error) {
 	id, err := uuid.Parse(req.Id)
 	if err != nil {

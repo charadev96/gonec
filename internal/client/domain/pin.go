@@ -1,13 +1,12 @@
 package domain
 
 import (
-	"crypto/ed25519"
+	shared "github.com/charadev96/gonec/internal/shared/domain"
 )
 
 type ServerPin struct {
-	ID        string
-	IPAddress string
-	PublicKey ed25519.PublicKey
+	ID       string
+	Identity shared.ServerPublicIdentity
 }
 
 type PinRepository interface {

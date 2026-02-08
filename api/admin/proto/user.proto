@@ -10,6 +10,8 @@ service UserService {
   rpc CreateUser(CreateUserRequest) returns (CreateUserReply);
   rpc CreateInvite(CreateInviteRequest) returns (CreateInviteReply);
 
+  rpc ExportInvite(ExportInviteRequest) returns (ExportInviteReply);
+
   rpc GetUserByID(GetByIDRequest) returns (GetUserReply);
   rpc GetUserByName(GetByNameRequest) returns (GetUserReply);
   rpc GetInviteByUserID(GetByIDRequest) returns (GetInviteReply);
@@ -26,6 +28,11 @@ enum UserState {
   USER_STATE_ACTIVE = 2;
 }
 
+message ServerPublicIdentity {
+  string ip_address = 1;
+  bytes public_key = 2;
+}
+
 message User {
   string id = 1;
   string name = 2;
@@ -38,6 +45,11 @@ message UserInvite {
   bytes token = 2;
   google.protobuf.Timestamp not_before = 3;
   google.protobuf.Timestamp not_after = 4;
+}
+
+message UserInviteManifest {
+  ServerPublicIdentity server = 1;
+  UserInvite invite = 2;
 }
 
 message CreateUserRequest {}
@@ -54,6 +66,14 @@ message CreateInviteRequest {
 
 message CreateInviteReply {
   UserInvite invite = 1;
+}
+
+message ExportInviteRequest {
+  string id = 1;
+}
+
+message ExportInviteReply {
+  UserInviteManifest manifest = 1;
 }
 
 message GetByIDRequest {

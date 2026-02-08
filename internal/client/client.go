@@ -33,14 +33,14 @@ func (c *Client) DialServer(id string) error {
 		VerifyPeerCertificate: c.verifyServerCertificate,
 		InsecureSkipVerify:    true,
 	}
-	conn, err := tls.Dial("tcp", server.IPAddress, config)
+	conn, err := tls.Dial("tcp", server.Identity.IPAddress, config)
 	if err != nil {
 		return fmt.Errorf("failed to establish connection: %w", err)
 	}
 	defer conn.Close()
 
 	c.Logger.Info().
-		Str("address", server.IPAddress).
+		Str("address", server.Identity.IPAddress).
 		Msg("connected to server")
 
 	buf := make([]byte, 1024)
@@ -62,7 +62,7 @@ func (c *Client) verifyServerCertificate(rawCerts [][]byte, verifiedChains [][]*
 		return fmt.Errorf("failed to get server pin '%s': %w", c.ConnServerID, err)
 	}
 
-	tcpAddr, err := net.ResolveTCPAddr("tcp", server.IPAddress)
+	tcpAddr, err := net.ResolveTCPAddr("tcp", server.Identity.IPAddress)
 	if err != nil {
 		return fmt.Errorf("failed to resolve server tcp address: %w", err)
 	}
@@ -97,7 +97,7 @@ func (c *Client) verifyServerCertificate(rawCerts [][]byte, verifiedChains [][]*
 		)
 	}
 
-	if ok = ed25519.Verify(server.PublicKey, cert.RawTBSCertificate, cert.Signature); !ok {
+	if ok = ed25519.Verify(server.Identity.PublicKey, cert.RawTBSCertificate, cert.Signature); !ok {
 		c.Logger.Warn().
 			Msg("certificate signature mismatch")
 		if c.UserTrustCertificate == nil {
@@ -110,7 +110,7 @@ func (c *Client) verifyServerCertificate(rawCerts [][]byte, verifiedChains [][]*
 			return fmt.Errorf("failed to verify certificate: signature denied by user")
 		}
 
-		server.PublicKey = key
+		server.Identity.PublicKey = key
 		if err = c.RepoPins.Set(server.ID, server); err != nil {
 			return fmt.Errorf("failed to save server registry: %w", err)
 		}
