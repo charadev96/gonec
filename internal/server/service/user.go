@@ -13,13 +13,13 @@ import (
 	"github.com/google/uuid"
 
 	server "github.com/charadev96/gonec/internal/server/domain"
-	domain "github.com/charadev96/gonec/internal/shared/domain"
+	shared "github.com/charadev96/gonec/internal/shared/domain"
 )
 
 type UserService struct {
 	Users    server.UserRepository
 	Invites  server.UserInviteRepository
-	TXRunner domain.TransactionRunner
+	TXRunner shared.TransactionRunner
 	Rand     io.Reader
 }
 
@@ -30,7 +30,7 @@ type CreateInviteOptions struct {
 
 func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts CreateInviteOptions) (server.UserInvite, error) {
 	inv := server.UserInvite{}
-	if _, err := s.Users.GetByID(ctx, id); err != nil && errors.Is(err, domain.ErrNotExist) {
+	if _, err := s.Users.GetByID(ctx, id); err != nil && errors.Is(err, shared.ErrNotExist) {
 		return inv, err
 	}
 
@@ -70,7 +70,7 @@ func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts Creat
 }
 
 func (s *UserService) RegisterUser(ctx context.Context, id uuid.UUID, tok []byte, pk ed25519.PublicKey) error {
-	if _, err := s.Users.GetByID(ctx, id); err != nil && errors.Is(err, domain.ErrNotExist) {
+	if _, err := s.Users.GetByID(ctx, id); err != nil && errors.Is(err, shared.ErrNotExist) {
 		return err
 	}
 

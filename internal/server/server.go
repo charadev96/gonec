@@ -11,8 +11,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
-	gen "github.com/charadev96/gonec/api/admin/gen"
-	admin "github.com/charadev96/gonec/internal/server/handler/admin"
+	"github.com/charadev96/gonec/api/admin/gen"
+	"github.com/charadev96/gonec/internal/server/handler/admin"
 	"github.com/charadev96/gonec/internal/server/service"
 )
 

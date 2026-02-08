@@ -9,7 +9,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"github.com/charadev96/gonec/internal/client/domain"
+	client "github.com/charadev96/gonec/internal/client/domain"
 )
 
 const (
@@ -23,9 +23,9 @@ type TOMLPinRepository struct {
 	modifiedAt time.Time
 }
 
-func (r *TOMLPinRepository) Get(id string) (domain.ServerPin, error) {
+func (r *TOMLPinRepository) Get(id string) (client.ServerPin, error) {
 	modified, err := r.fileModified()
-	pin := domain.ServerPin{}
+	pin := client.ServerPin{}
 	if err != nil {
 		return pin, err
 	}
@@ -42,7 +42,7 @@ func (r *TOMLPinRepository) Get(id string) (domain.ServerPin, error) {
 	return pin, nil
 }
 
-func (r *TOMLPinRepository) Set(id string, pin domain.ServerPin) error {
+func (r *TOMLPinRepository) Set(id string, pin client.ServerPin) error {
 	modified, err := r.fileModified()
 	if err != nil {
 		return err
@@ -98,15 +98,15 @@ type serverPin struct {
 	PublicKey publicKey `toml:"publicKey"`
 }
 
-func (p *serverPin) toDomain(id string) domain.ServerPin {
-	return domain.ServerPin{
+func (p *serverPin) toDomain(id string) client.ServerPin {
+	return client.ServerPin{
 		ID:        id,
 		IPAddress: p.IPAddress,
 		PublicKey: p.PublicKey.value,
 	}
 }
 
-func (p *serverPin) fromDomain(pin domain.ServerPin) {
+func (p *serverPin) fromDomain(pin client.ServerPin) {
 	p.IPAddress = pin.IPAddress
 	p.PublicKey = publicKey{value: pin.PublicKey}
 }
