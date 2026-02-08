@@ -12,7 +12,7 @@ import (
 	"github.com/uptrace/bun"
 
 	server "github.com/charadev96/gonec/internal/server/domain"
-	domain "github.com/charadev96/gonec/internal/shared/domain"
+	shared "github.com/charadev96/gonec/internal/shared/domain"
 	"github.com/charadev96/gonec/internal/shared/infra"
 )
 
@@ -58,7 +58,7 @@ func (r *BunUserRepository) GetByID(ctx context.Context, id uuid.UUID) (server.U
 		Scan(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			err = domain.ErrNotExist
+			err = shared.ErrNotExist
 		}
 		return usr, fmt.Errorf("failed to get user: %w", err)
 	}
@@ -76,7 +76,7 @@ func (r *BunUserRepository) GetByName(ctx context.Context, name string) (server.
 		Scan(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			err = domain.ErrNotExist
+			err = shared.ErrNotExist
 		}
 		return usr, fmt.Errorf("failed to get user: %w", err)
 	}
