@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package gonec.messaging.v1;
+
+option go_package = "github.com/charadev96/gonec/api/messaging/gen";
+
+service AuthService {
+  rpc Register(RegisterRequest) returns (RegisterReply);
+  rpc InitiateLogin(InitiateLoginRequest) returns (InitiateLoginReply);
+  rpc CompleteLogin(CompleteLoginRequest) returns (CompleteLoginReply);
+  rpc Logout(LogoutRequest) returns (LogoutReply);
+}
+
+message UserSession {
+  string id = 1;
+  string user_id = 2;
+  bytes token = 3;
+}
+
+message RegisterRequest {
+  string id = 1;
+  bytes token = 2;
+  bytes public_key = 3;
+}
+
+message RegisterReply {}
+
+message InitiateLoginRequest {
+  string id = 1;
+}
+
+message InitiateLoginReply {
+  bytes challenge_nonce = 1;
+}
+
+message CompleteLoginRequest {
+  string id = 1;
+  bytes challenge_signed = 2;
+}
+
+message CompleteLoginReply {
+  string session_id = 1;
+  bytes session_token = 2;
+}
+
+message LogoutRequest {
+  UserSession auth = 1;
+}
+
+message LogoutReply {}
