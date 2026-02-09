@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"net"
 
@@ -11,8 +10,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
-	"github.com/charadev96/gonec/api/admin/gen"
+	genadm "github.com/charadev96/gonec/api/admin/gen"
+	genmsg "github.com/charadev96/gonec/api/messaging/gen"
 	"github.com/charadev96/gonec/internal/server/handler/admin"
+	"github.com/charadev96/gonec/internal/server/handler/messaging"
 	"github.com/charadev96/gonec/internal/server/service"
 )
 
@@ -44,7 +45,7 @@ func (s *Server) ServeAdmin(ctx context.Context) error {
 		Msg("started server")
 
 	inst := grpc.NewServer()
-	gen.RegisterUserServiceServer(inst, &admin.UserServiceHandler{
+	genadm.RegisterUserServiceServer(inst, &admin.UserServiceHandler{
 		Service: s.UserService,
 	})
 
@@ -72,28 +73,18 @@ func (s *Server) ServeMessaging(ctx context.Context) error {
 		Str("address", s.Messaging.Addr).
 		Msg("started server")
 
+	inst := grpc.NewServer()
+	genmsg.RegisterAuthServiceServer(inst, &messaging.AuthServiceHandler{
+		Service: s.UserService,
+	})
+
+	reflection.Register(inst)
+
 	go func() {
 		<-ctx.Done()
 		s.Messaging.Logger.Info().Msg("shutting down")
-		ln.Close()
+		inst.GracefulStop()
 	}()
 
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			if errors.Is(err, net.ErrClosed) {
-				return nil
-			}
-			return err
-		}
-		s.Messaging.Logger.Info().
-			Str("address", conn.RemoteAddr().String()).
-			Msg("established connection")
-		go handleConnection(conn)
-	}
-}
-
-func handleConnection(conn net.Conn) {
-	defer conn.Close()
-	fmt.Fprintf(conn, "0\n")
+	return inst.Serve(ln)
 }
