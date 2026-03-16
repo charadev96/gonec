@@ -74,7 +74,7 @@ func (c *Client) verifyServerCertificate(rawCerts [][]byte, verifiedChains [][]*
 
 	key, ok := cert.PublicKey.(ed25519.PublicKey)
 	if !ok {
-		return fmt.Errorf("incorrect certifiacte public key format (must be ed25519)")
+		return fmt.Errorf("incorrect certificate public key format (must be ed25519)")
 	}
 
 	if err = cert.VerifyHostname(fmt.Sprintf("[%s]", tcpAddr.IP.String())); err != nil {
