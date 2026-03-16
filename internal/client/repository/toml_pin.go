@@ -2,12 +2,14 @@ package repository
 
 import (
 	"crypto/ed25519"
-	"encoding/hex"
+	"encoding/base64"
 	"fmt"
+	"github.com/google/uuid"
 	"os"
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/jinzhu/copier"
 
 	client "github.com/charadev96/gonec/internal/client/domain"
 	shared "github.com/charadev96/gonec/internal/shared/domain"
@@ -17,16 +19,16 @@ const (
 	permRepository = 0644
 )
 
-type TOMLPinRepository struct {
+type TOMLConnPinRepository struct {
 	FilePath string
 
 	data       schema
 	modifiedAt time.Time
 }
 
-func (r *TOMLPinRepository) Get(id string) (client.ServerPin, error) {
+func (r *TOMLConnPinRepository) Get(id string) (client.ConnPin, error) {
 	modified, err := r.fileModified()
-	pin := client.ServerPin{}
+	pin := client.ConnPin{}
 	if err != nil {
 		return pin, err
 	}
@@ -35,15 +37,18 @@ func (r *TOMLPinRepository) Get(id string) (client.ServerPin, error) {
 			return pin, err
 		}
 	}
-	pinRepr, ok := r.data.Servers[id]
+	p, ok := r.data.Conns[id]
 	if !ok {
-		return pin, fmt.Errorf("pin does not exist")
+		return pin, shared.ErrNotExist
 	}
-	pin = pinRepr.toDomain(id)
+	copier.Copy(&pin, p)
+	pin.ID = id
+	pin.Server.PublicKey = p.Server.PublicKey.PublicKey
+	pin.User.PrivateKey = p.User.PrivateKey.PrivateKey
 	return pin, nil
 }
 
-func (r *TOMLPinRepository) Set(id string, pin client.ServerPin) error {
+func (r *TOMLConnPinRepository) Set(id string, pin client.ConnPin) error {
 	modified, err := r.fileModified()
 	if err != nil {
 		return err
@@ -53,72 +58,110 @@ func (r *TOMLPinRepository) Set(id string, pin client.ServerPin) error {
 			return err
 		}
 	}
-	if _, ok := r.data.Servers[id]; !ok {
-		r.data.Servers[id] = &serverPin{}
+	if _, ok := r.data.Conns[id]; !ok {
+		r.data.Conns[id] = &connPin{}
 	}
-	r.data.Servers[id].fromDomain(pin)
+	copier.Copy(r.data.Conns[id], pin)
+	r.data.Conns[id].Server.PublicKey.PublicKey = pin.Server.PublicKey
+	r.data.Conns[id].User.PrivateKey.PrivateKey = pin.User.PrivateKey
 	if err := r.save(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *TOMLPinRepository) Delete(id string) error {
-	_, ok := r.data.Servers[id]
+func (r *TOMLConnPinRepository) Delete(id string) error {
+	_, ok := r.data.Conns[id]
 	if !ok {
-		return fmt.Errorf("pin does not exist")
+		return shared.ErrNotExist
 	}
-	delete(r.data.Servers, id)
+	delete(r.data.Conns, id)
 	if err := r.save(); err != nil {
 		return err
 	}
 	return nil
+}
+
+func decodeBase64(src []byte, size int) ([]byte, error) {
+	s := base64.StdEncoding.DecodedLen(len(src))
+	if s == 0 {
+		return []byte{}, nil
+	}
+	if s < size {
+		return nil, fmt.Errorf("base64: bad length %d, requires at least %d", s, size)
+	}
+	dst := make([]byte, size)
+	_, err := base64.StdEncoding.Decode(dst, src)
+	if err != nil {
+		return nil, err
+	}
+	return dst, nil
+}
+
+func encodeBase64(src []byte, size int) ([]byte, error) {
+	s := len(src)
+	if s == 0 {
+		return []byte{}, nil
+	}
+	if s != size {
+		return nil, fmt.Errorf("base64: bad length %d, requires %d", s, size)
+	}
+	dst := make([]byte, base64.StdEncoding.EncodedLen(len(src)))
+	base64.StdEncoding.Encode(dst, src)
+	return dst, nil
 }
 
 type publicKey struct {
-	value ed25519.PublicKey
+	ed25519.PublicKey
 }
 
 func (p *publicKey) UnmarshalText(text []byte) error {
-	p.value = make([]byte, ed25519.PublicKeySize)
-	_, err := hex.Decode(p.value, text)
-	if err != nil {
-		return err
+	key, err := decodeBase64(text, ed25519.PublicKeySize)
+	if err == nil {
+		p.PublicKey = key
 	}
-	return nil
+	return err
 }
 
 func (p *publicKey) MarshalText() ([]byte, error) {
-	text := make([]byte, ed25519.PublicKeySize*2)
-	hex.Encode(text, p.value)
-	return text, nil
+	text, err := encodeBase64(p.PublicKey, ed25519.PublicKeySize)
+	return text, err
 }
 
-type serverPin struct {
-	IPAddress string    `toml:"address"`
-	PublicKey publicKey `toml:"publicKey"`
+type privateKey struct {
+	ed25519.PrivateKey
 }
 
-func (p *serverPin) toDomain(id string) client.ServerPin {
-	return client.ServerPin{
-		ID: id,
-		Identity: shared.ServerPublicIdentity{
-			IPAddress: p.IPAddress,
-			PublicKey: p.PublicKey.value,
-		},
+func (p *privateKey) UnmarshalText(text []byte) error {
+	key, err := decodeBase64(text, ed25519.PrivateKeySize)
+	if err == nil {
+		p.PrivateKey = key
 	}
+	return err
 }
 
-func (p *serverPin) fromDomain(pin client.ServerPin) {
-	p.IPAddress = pin.Identity.IPAddress
-	p.PublicKey = publicKey{value: pin.Identity.PublicKey}
+func (p *privateKey) MarshalText() ([]byte, error) {
+	text, err := encodeBase64(p.PrivateKey, ed25519.PrivateKeySize)
+	return text, err
+}
+
+type connPin struct {
+	User struct {
+		ID         uuid.UUID  `toml:"id"`
+		Name       string     `toml:"name"`
+		PrivateKey privateKey `toml:"private_key"`
+	} `toml:"user"`
+	Server struct {
+		IPAddress string    `toml:"ip_address"`
+		PublicKey publicKey `toml:"public_key"`
+	} `toml:"server"`
 }
 
 type schema struct {
-	Servers map[string]*serverPin `toml:"servers"`
+	Conns map[string]*connPin `toml:"connections"`
 }
 
-func (r *TOMLPinRepository) fileModified() (bool, error) {
+func (r *TOMLConnPinRepository) fileModified() (bool, error) {
 	info, err := os.Stat(r.FilePath)
 	if err != nil {
 		return false, fmt.Errorf("failed to read file timestamp: %w", err)
@@ -131,7 +174,7 @@ func (r *TOMLPinRepository) fileModified() (bool, error) {
 	return mod, nil
 }
 
-func (r *TOMLPinRepository) load() error {
+func (r *TOMLConnPinRepository) load() error {
 	_, err := toml.DecodeFile(r.FilePath, &r.data)
 	if err != nil {
 		return fmt.Errorf("failed to load repository: %w", err)
@@ -139,7 +182,7 @@ func (r *TOMLPinRepository) load() error {
 	return nil
 }
 
-func (r *TOMLPinRepository) save() error {
+func (r *TOMLConnPinRepository) save() error {
 	file, err := os.OpenFile(r.FilePath, os.O_WRONLY|os.O_TRUNC, permRepository)
 	if err != nil {
 		return fmt.Errorf("failed to save repository: %w", err)

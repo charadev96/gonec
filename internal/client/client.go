@@ -16,16 +16,16 @@ import (
 
 type Client struct {
 	ConnServerID string
-	RepoPins     domain.PinRepository
+	Pins         domain.ConnPinRepository
 	Logger       *zerolog.Logger
 
 	UserTrustCertificate func(*x509.Certificate) bool
 }
 
 func (c *Client) DialServer(id string) error {
-	server, err := c.RepoPins.Get(id)
+	pin, err := c.Pins.Get(id)
 	if err != nil {
-		return fmt.Errorf("failed to get server pin '%s': %w", id, err)
+		return fmt.Errorf("failed to get pin '%s': %w", id, err)
 	}
 	c.ConnServerID = id
 
@@ -33,14 +33,14 @@ func (c *Client) DialServer(id string) error {
 		VerifyPeerCertificate: c.verifyServerCertificate,
 		InsecureSkipVerify:    true,
 	}
-	conn, err := tls.Dial("tcp", server.Identity.IPAddress, config)
+	conn, err := tls.Dial("tcp", pin.Server.IPAddress, config)
 	if err != nil {
 		return fmt.Errorf("failed to establish connection: %w", err)
 	}
 	defer conn.Close()
 
 	c.Logger.Info().
-		Str("address", server.Identity.IPAddress).
+		Str("address", pin.Server.IPAddress).
 		Msg("connected to server")
 
 	buf := make([]byte, 1024)
@@ -57,12 +57,12 @@ func (c *Client) DialServer(id string) error {
 }
 
 func (c *Client) verifyServerCertificate(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
-	server, err := c.RepoPins.Get(c.ConnServerID)
+	pin, err := c.Pins.Get(c.ConnServerID)
 	if err != nil {
-		return fmt.Errorf("failed to get server pin '%s': %w", c.ConnServerID, err)
+		return fmt.Errorf("failed to get pin '%s': %w", c.ConnServerID, err)
 	}
 
-	tcpAddr, err := net.ResolveTCPAddr("tcp", server.Identity.IPAddress)
+	tcpAddr, err := net.ResolveTCPAddr("tcp", pin.Server.IPAddress)
 	if err != nil {
 		return fmt.Errorf("failed to resolve server tcp address: %w", err)
 	}
@@ -97,7 +97,7 @@ func (c *Client) verifyServerCertificate(rawCerts [][]byte, verifiedChains [][]*
 		)
 	}
 
-	if ok = ed25519.Verify(server.Identity.PublicKey, cert.RawTBSCertificate, cert.Signature); !ok {
+	if ok = ed25519.Verify(pin.Server.PublicKey, cert.RawTBSCertificate, cert.Signature); !ok {
 		c.Logger.Warn().
 			Msg("certificate signature mismatch")
 		if c.UserTrustCertificate == nil {
@@ -110,9 +110,9 @@ func (c *Client) verifyServerCertificate(rawCerts [][]byte, verifiedChains [][]*
 			return fmt.Errorf("failed to verify certificate: signature denied by user")
 		}
 
-		server.Identity.PublicKey = key
-		if err = c.RepoPins.Set(server.ID, server); err != nil {
-			return fmt.Errorf("failed to save server registry: %w", err)
+		pin.Server.PublicKey = key
+		if err = c.Pins.Set(pin.ID, pin); err != nil {
+			return fmt.Errorf("failed to save pin registry: %w", err)
 		}
 		c.Logger.Info().
 			Msg("public key updated, attempting to reverify")
