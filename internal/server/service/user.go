@@ -198,7 +198,7 @@ func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (
 		return sess, err
 	}
 
-	if ok := time.Now().After(nonce.CreatedAt.Add(time.Minute)); !ok {
+	if expired := time.Now().After(nonce.CreatedAt.Add(time.Minute)); expired {
 		return sess, fmt.Errorf("challenge nonce expired, please retry")
 	}
 	if ok := ed25519.Verify(user.PublicKey, nonce.Nonce, sig); !ok {
