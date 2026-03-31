@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -15,6 +16,7 @@ import (
 	"github.com/charadev96/gonec/internal/server/handler/admin"
 	"github.com/charadev96/gonec/internal/server/handler/messaging"
 	"github.com/charadev96/gonec/internal/server/service"
+	"github.com/charadev96/gonec/internal/shared/log"
 )
 
 type AdminConfig struct {
@@ -44,7 +46,14 @@ func (s *Server) ServeAdmin(ctx context.Context) error {
 		Str("address", s.Admin.Addr).
 		Msg("started server")
 
-	inst := grpc.NewServer()
+	opts := []logging.Option{
+		logging.WithLogOnEvents(logging.StartCall, logging.FinishCall),
+	}
+	inst := grpc.NewServer(
+		grpc.UnaryInterceptor(
+			logging.UnaryServerInterceptor(log.NewInterceptor(*s.Admin.Logger), opts...),
+		),
+	)
 	genadm.RegisterUserServiceServer(inst, &admin.UserServiceHandler{
 		Service: s.UserService,
 	})
@@ -73,7 +82,14 @@ func (s *Server) ServeMessaging(ctx context.Context) error {
 		Str("address", s.Messaging.Addr).
 		Msg("started server")
 
-	inst := grpc.NewServer()
+	opts := []logging.Option{
+		logging.WithLogOnEvents(logging.StartCall, logging.FinishCall),
+	}
+	inst := grpc.NewServer(
+		grpc.UnaryInterceptor(
+			logging.UnaryServerInterceptor(log.NewInterceptor(*s.Admin.Logger), opts...),
+		),
+	)
 	genmsg.RegisterAuthServiceServer(inst, &messaging.AuthServiceHandler{
 		Service: s.UserService,
 	})
