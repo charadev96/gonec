@@ -1,4 +1,4 @@
-package admin
+package adminpb
 
 import (
 	"context"
@@ -9,7 +9,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/charadev96/gonec/api/admin/gen"
+	adminpb "github.com/charadev96/gonec/gen/admin"
+	sharedpb "github.com/charadev96/gonec/gen/shared"
 	server "github.com/charadev96/gonec/internal/server/domain"
 	"github.com/charadev96/gonec/internal/server/service"
 )
@@ -17,20 +18,20 @@ import (
 // TODO: Sanitize errors
 
 type UserServiceHandler struct {
-	gen.UnimplementedUserServiceServer
+	adminpb.UnimplementedUserServiceServer
 	Service *service.UserService
 }
 
-func (h *UserServiceHandler) CreateUser(ctx context.Context, req *gen.CreateUserRequest) (*gen.CreateUserReply, error) {
+func (h *UserServiceHandler) CreateUser(ctx context.Context, req *adminpb.CreateUserRequest) (*adminpb.CreateUserReply, error) {
 	id, err := h.Service.Users.Create(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &gen.CreateUserReply{Id: id.String()}, nil
+	return &adminpb.CreateUserReply{UserId: id.String()}, nil
 }
 
-func (h *UserServiceHandler) CreateInvite(ctx context.Context, req *gen.CreateInviteRequest) (*gen.CreateInviteReply, error) {
-	id, err := uuid.Parse(req.Id)
+func (h *UserServiceHandler) CreateInvite(ctx context.Context, req *adminpb.CreateInviteRequest) (*adminpb.CreateInviteReply, error) {
+	id, err := uuid.Parse(req.UserId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -42,28 +43,28 @@ func (h *UserServiceHandler) CreateInvite(ctx context.Context, req *gen.CreateIn
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	i := new(gen.UserInvite)
+	i := &sharedpb.InviteCredential{}
 	copier.Copy(i, &inv)
 	i.NotBefore = timestamppb.New(inv.NotBefore)
 	i.NotAfter = timestamppb.New(inv.NotAfter)
-	return &gen.CreateInviteReply{Invite: i}, nil
+	return &adminpb.CreateInviteReply{Invite: i}, nil
 }
 
-func (h *UserServiceHandler) ExportInvite(ctx context.Context, req *gen.ExportInviteRequest) (*gen.ExportInviteReply, error) {
-	id, err := uuid.Parse(req.Id)
+func (h *UserServiceHandler) ExportInvite(ctx context.Context, req *adminpb.ExportInviteRequest) (*adminpb.ExportInviteReply, error) {
+	id, err := uuid.Parse(req.UserId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	mnf, err := h.Service.ExportInvite(ctx, id)
+	tck, err := h.Service.ExportInvite(ctx, id)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	m := new(gen.UserInviteManifest)
-	copier.Copy(m, &mnf)
-	return &gen.ExportInviteReply{Manifest: m}, nil
+	t := &sharedpb.InviteTicket{}
+	copier.Copy(t, &tck)
+	return &adminpb.ExportInviteReply{Ticket: t}, nil
 }
 
-func (h *UserServiceHandler) GetUserByID(ctx context.Context, req *gen.GetByIDRequest) (*gen.GetUserReply, error) {
+func (h *UserServiceHandler) GetUserByID(ctx context.Context, req *adminpb.GetByIDRequest) (*adminpb.GetUserReply, error) {
 	id, err := uuid.Parse(req.Id)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -72,22 +73,22 @@ func (h *UserServiceHandler) GetUserByID(ctx context.Context, req *gen.GetByIDRe
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	u := new(gen.User)
+	u := new(adminpb.User)
 	copier.Copy(u, &user)
-	return &gen.GetUserReply{User: u}, nil
+	return &adminpb.GetUserReply{User: u}, nil
 }
 
-func (h *UserServiceHandler) GetUserByName(ctx context.Context, req *gen.GetByNameRequest) (*gen.GetUserReply, error) {
+func (h *UserServiceHandler) GetUserByName(ctx context.Context, req *adminpb.GetByNameRequest) (*adminpb.GetUserReply, error) {
 	user, err := h.Service.Users.GetByName(ctx, req.Name)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	u := new(gen.User)
+	u := new(adminpb.User)
 	copier.Copy(u, &user)
-	return &gen.GetUserReply{User: u}, nil
+	return &adminpb.GetUserReply{User: u}, nil
 }
 
-func (h *UserServiceHandler) GetInviteByUserID(ctx context.Context, req *gen.GetByIDRequest) (*gen.GetInviteReply, error) {
+func (h *UserServiceHandler) GetInviteByUserID(ctx context.Context, req *adminpb.GetByIDRequest) (*adminpb.GetInviteReply, error) {
 	id, err := uuid.Parse(req.Id)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -96,12 +97,12 @@ func (h *UserServiceHandler) GetInviteByUserID(ctx context.Context, req *gen.Get
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	i := new(gen.UserInvite)
+	i := &sharedpb.InviteCredential{}
 	copier.Copy(i, &invite)
-	return &gen.GetInviteReply{Invite: i}, nil
+	return &adminpb.GetInviteReply{Invite: i}, nil
 }
 
-func (h *UserServiceHandler) ListUsers(ctx context.Context, req *gen.ListUsersRequest) (*gen.ListUsersReply, error) {
+func (h *UserServiceHandler) ListUsers(ctx context.Context, req *adminpb.ListUsersRequest) (*adminpb.ListUsersReply, error) {
 	var cursor uuid.UUID
 	if req.Cursor != "" {
 		var err error
@@ -119,20 +120,20 @@ func (h *UserServiceHandler) ListUsers(ctx context.Context, req *gen.ListUsersRe
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	var users []*gen.User
+	var users []*adminpb.User
 	for _, u := range list.Users {
-		users = append(users, &gen.User{})
+		users = append(users, &adminpb.User{})
 		copier.Copy(users[len(users)-1], &u)
 	}
 
-	return &gen.ListUsersReply{
+	return &adminpb.ListUsersReply{
 		Users:  users,
 		Cursor: list.Cursor.String(),
 	}, nil
 
 }
 
-func (h *UserServiceHandler) DeleteUser(ctx context.Context, req *gen.DeleteRequest) (*gen.DeleteReply, error) {
+func (h *UserServiceHandler) DeleteUser(ctx context.Context, req *adminpb.DeleteRequest) (*adminpb.DeleteReply, error) {
 	id, err := uuid.Parse(req.Id)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -141,10 +142,10 @@ func (h *UserServiceHandler) DeleteUser(ctx context.Context, req *gen.DeleteRequ
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &gen.DeleteReply{}, nil
+	return &adminpb.DeleteReply{}, nil
 }
 
-func (h *UserServiceHandler) DeleteInvite(ctx context.Context, req *gen.DeleteRequest) (*gen.DeleteReply, error) {
+func (h *UserServiceHandler) DeleteInvite(ctx context.Context, req *adminpb.DeleteRequest) (*adminpb.DeleteReply, error) {
 	id, err := uuid.Parse(req.Id)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -153,5 +154,5 @@ func (h *UserServiceHandler) DeleteInvite(ctx context.Context, req *gen.DeleteRe
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &gen.DeleteReply{}, nil
+	return &adminpb.DeleteReply{}, nil
 }

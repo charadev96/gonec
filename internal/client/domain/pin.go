@@ -7,16 +7,15 @@ import (
 	shared "github.com/charadev96/gonec/internal/shared/domain"
 )
 
-type UserIdentity struct {
+type UserPrivateIdentity struct {
 	ID         uuid.UUID
-	Name       string
 	PrivateKey ed25519.PrivateKey
 }
 
 type ConnPin struct {
 	ID     string
-	User   UserIdentity
-	Server shared.ServerPublicIdentity
+	User   UserPrivateIdentity
+	Server shared.ServerIdentity
 }
 
 type ConnPinRepository interface {

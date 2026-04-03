@@ -1,8 +1,10 @@
 syntax = "proto3";
 
-package gonec.messaging.v1;
+package gonec.gateway.v1;
 
-option go_package = "github.com/charadev96/gonec/api/messaging/gen";
+import "shared/core.proto";
+
+option go_package = "github.com/charadev96/gonec/gen/gateway";
 
 service AuthService {
   rpc Register(RegisterRequest) returns (RegisterReply);
@@ -11,14 +13,8 @@ service AuthService {
   rpc Logout(LogoutRequest) returns (LogoutReply);
 }
 
-message UserSession {
-  string id = 1;
-  string user_id = 2;
-  bytes token = 3;
-}
-
 message RegisterRequest {
-  string id = 1;
+  string user_id = 1;
   bytes token = 2;
   bytes public_key = 3;
 }
@@ -26,25 +22,24 @@ message RegisterRequest {
 message RegisterReply {}
 
 message InitiateLoginRequest {
-  string id = 1;
+  string user_id = 1;
 }
 
 message InitiateLoginReply {
-  bytes challenge_nonce = 1;
+  bytes nonce = 1;
 }
 
 message CompleteLoginRequest {
-  string id = 1;
-  bytes challenge_signed = 2;
+  string user_id = 1;
+  bytes signature = 2;
 }
 
 message CompleteLoginReply {
-  string session_id = 1;
-  bytes session_token = 2;
+  shared.v1.Session auth = 1;
 }
 
 message LogoutRequest {
-  UserSession auth = 1;
+  shared.v1.Session auth = 1;
 }
 
 message LogoutReply {}

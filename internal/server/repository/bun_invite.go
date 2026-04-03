@@ -11,22 +11,21 @@ import (
 	"github.com/jinzhu/copier"
 	"github.com/uptrace/bun"
 
-	server "github.com/charadev96/gonec/internal/server/domain"
 	shared "github.com/charadev96/gonec/internal/shared/domain"
 	"github.com/charadev96/gonec/internal/shared/infra"
 )
 
-type BunUserInviteRepository struct {
+type BunInviteCredentialRepository struct {
 	db *bun.DB
 }
 
-func NewBunUserInviteRepository(ctx context.Context, db *bun.DB) (*BunUserInviteRepository, error) {
-	r := &BunUserInviteRepository{
+func NewBunInviteCredentialRepository(ctx context.Context, db *bun.DB) (*BunInviteCredentialRepository, error) {
+	r := &BunInviteCredentialRepository{
 		db: db,
 	}
 	tx := infra.ExtractTx(ctx, r.db)
 	_, err := tx.NewCreateTable().
-		Model((*userInvite)(nil)).
+		Model((*inviteCredential)(nil)).
 		IfNotExists().
 		Exec(ctx)
 	if err != nil {
@@ -35,12 +34,12 @@ func NewBunUserInviteRepository(ctx context.Context, db *bun.DB) (*BunUserInvite
 	return r, nil
 }
 
-func (r *BunUserInviteRepository) Save(ctx context.Context, inv server.UserInvite) error {
+func (r *BunInviteCredentialRepository) Save(ctx context.Context, cred shared.InviteCredential) error {
 	tx := infra.ExtractTx(ctx, r.db)
-	i := new(userInvite)
-	copier.Copy(i, &inv)
+	c := &inviteCredential{}
+	copier.Copy(c, &cred)
 	_, err := tx.NewInsert().
-		Model(i).
+		Model(c).
 		Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to save invite: %w", err)
@@ -48,29 +47,29 @@ func (r *BunUserInviteRepository) Save(ctx context.Context, inv server.UserInvit
 	return nil
 }
 
-func (r *BunUserInviteRepository) GetByUserID(ctx context.Context, id uuid.UUID) (server.UserInvite, error) {
+func (r *BunInviteCredentialRepository) GetByUserID(ctx context.Context, id uuid.UUID) (shared.InviteCredential, error) {
 	tx := infra.ExtractTx(ctx, r.db)
-	i := new(userInvite)
-	inv := server.UserInvite{}
+	c := &inviteCredential{}
+	cred := shared.InviteCredential{}
 	err := tx.NewSelect().
-		Model(i).
+		Model(c).
 		Where("user_id = ?", id).
 		Scan(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			err = shared.ErrNotExist
 		}
-		return inv, fmt.Errorf("failed to get invite: %w", err)
+		return cred, fmt.Errorf("failed to get invite: %w", err)
 	}
-	copier.Copy(&inv, i)
-	return inv, nil
+	copier.Copy(&cred, c)
+	return cred, nil
 }
 
-func (r *BunUserInviteRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *BunInviteCredentialRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	tx := infra.ExtractTx(ctx, r.db)
-	i := &userInvite{UserID: id}
+	c := &inviteCredential{UserID: id}
 	_, err := tx.NewDelete().
-		Model(i).
+		Model(c).
 		WherePK().
 		Exec(ctx)
 	if err != nil {
@@ -79,7 +78,7 @@ func (r *BunUserInviteRepository) Delete(ctx context.Context, id uuid.UUID) erro
 	return nil
 }
 
-type userInvite struct {
+type inviteCredential struct {
 	UserID    uuid.UUID `bun:",pk"`
 	Token     []byte    `bun:",unique,nullzero"`
 	NotBefore time.Time

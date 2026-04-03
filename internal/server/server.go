@@ -11,10 +11,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
-	genadm "github.com/charadev96/gonec/api/admin/gen"
-	genmsg "github.com/charadev96/gonec/api/messaging/gen"
-	"github.com/charadev96/gonec/internal/server/handler/admin"
-	"github.com/charadev96/gonec/internal/server/handler/messaging"
+	adminpb "github.com/charadev96/gonec/gen/admin"
+	gatewaypb "github.com/charadev96/gonec/gen/gateway"
+	admin "github.com/charadev96/gonec/internal/server/handler/admin"
+	gateway "github.com/charadev96/gonec/internal/server/handler/gateway"
 	"github.com/charadev96/gonec/internal/server/service"
 	"github.com/charadev96/gonec/internal/shared/log"
 )
@@ -54,7 +54,7 @@ func (s *Server) ServeAdmin(ctx context.Context) error {
 			logging.UnaryServerInterceptor(log.NewInterceptor(*s.Admin.Logger), opts...),
 		),
 	)
-	genadm.RegisterUserServiceServer(inst, &admin.UserServiceHandler{
+	adminpb.RegisterUserServiceServer(inst, &admin.UserServiceHandler{
 		Service: s.UserService,
 	})
 
@@ -90,7 +90,7 @@ func (s *Server) ServeMessaging(ctx context.Context) error {
 			logging.UnaryServerInterceptor(log.NewInterceptor(*s.Admin.Logger), opts...),
 		),
 	)
-	genmsg.RegisterAuthServiceServer(inst, &messaging.AuthServiceHandler{
+	gatewaypb.RegisterAuthServiceServer(inst, &gateway.AuthServiceHandler{
 		Service: s.UserService,
 	})
 

@@ -5,17 +5,17 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	shared "github.com/charadev96/gonec/internal/shared/domain"
 )
 
-type UserSession struct {
-	ID        uuid.UUID
-	UserID    uuid.UUID
-	Token     []byte
+type Session struct {
+	shared.Session
 	CreatedAt time.Time
 }
 
-type UserSessionRepository interface {
-	Save(ctx context.Context, sess UserSession) error
-	GetByID(ctx context.Context, id uuid.UUID) (UserSession, error)
+type SessionRepository interface {
+	Save(ctx context.Context, sess Session) error
+	GetByID(ctx context.Context, id uuid.UUID) (Session, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }

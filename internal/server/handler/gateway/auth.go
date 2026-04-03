@@ -4,35 +4,36 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jinzhu/copier"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	//"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/charadev96/gonec/api/messaging/gen"
-	server "github.com/charadev96/gonec/internal/server/domain"
+	gatewaypb "github.com/charadev96/gonec/gen/gateway"
+	sharedpb "github.com/charadev96/gonec/gen/shared"
 	"github.com/charadev96/gonec/internal/server/service"
+	shared "github.com/charadev96/gonec/internal/shared/domain"
 )
 
 // TODO: Sanitize errors
 
 type AuthServiceHandler struct {
-	gen.UnimplementedAuthServiceServer
+	gatewaypb.UnimplementedAuthServiceServer
 	Service *service.UserService
 }
 
-func (h *AuthServiceHandler) Register(ctx context.Context, req *gen.RegisterRequest) (*gen.RegisterReply, error) {
-	id, err := uuid.Parse(req.Id)
+func (h *AuthServiceHandler) Register(ctx context.Context, req *gatewaypb.RegisterRequest) (*gatewaypb.RegisterReply, error) {
+	id, err := uuid.Parse(req.UserId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	if err := h.Service.RegisterUser(ctx, id, req.Token, req.PublicKey); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &gen.RegisterReply{}, nil
+	return &gatewaypb.RegisterReply{}, nil
 }
 
-func (h *AuthServiceHandler) InitiateLogin(ctx context.Context, req *gen.InitiateLoginRequest) (*gen.InitiateLoginReply, error) {
-	id, err := uuid.Parse(req.Id)
+func (h *AuthServiceHandler) InitiateLogin(ctx context.Context, req *gatewaypb.InitiateLoginRequest) (*gatewaypb.InitiateLoginReply, error) {
+	id, err := uuid.Parse(req.UserId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -40,25 +41,26 @@ func (h *AuthServiceHandler) InitiateLogin(ctx context.Context, req *gen.Initiat
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &gen.InitiateLoginReply{ChallengeNonce: nonce}, nil
+	return &gatewaypb.InitiateLoginReply{Nonce: nonce}, nil
 }
 
-func (h *AuthServiceHandler) CompleteLogin(ctx context.Context, req *gen.CompleteLoginRequest) (*gen.CompleteLoginReply, error) {
-	id, err := uuid.Parse(req.Id)
+func (h *AuthServiceHandler) CompleteLogin(ctx context.Context, req *gatewaypb.CompleteLoginRequest) (*gatewaypb.CompleteLoginReply, error) {
+	id, err := uuid.Parse(req.UserId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	sess, err := h.Service.LoginUser(ctx, id, req.ChallengeSigned)
+	sess, err := h.Service.LoginUser(ctx, id, req.Signature)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &gen.CompleteLoginReply{
-		SessionId:    sess.ID.String(),
-		SessionToken: sess.Token,
+	s := &sharedpb.Session{}
+	copier.Copy(s, sess)
+	return &gatewaypb.CompleteLoginReply{
+		Auth: s,
 	}, nil
 }
 
-func (h *AuthServiceHandler) Logout(ctx context.Context, req *gen.LogoutRequest) (*gen.LogoutReply, error) {
+func (h *AuthServiceHandler) Logout(ctx context.Context, req *gatewaypb.LogoutRequest) (*gatewaypb.LogoutReply, error) {
 	id, err := uuid.Parse(req.Auth.Id)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -67,7 +69,7 @@ func (h *AuthServiceHandler) Logout(ctx context.Context, req *gen.LogoutRequest)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	sess := server.UserSession{
+	sess := shared.Session{
 		ID:     id,
 		UserID: uid,
 		Token:  req.Auth.Token,
@@ -75,5 +77,5 @@ func (h *AuthServiceHandler) Logout(ctx context.Context, req *gen.LogoutRequest)
 	if err := h.Service.LogoutUser(ctx, sess); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &gen.LogoutReply{}, nil
+	return &gatewaypb.LogoutReply{}, nil
 }

@@ -16,17 +16,17 @@ import (
 	"github.com/charadev96/gonec/internal/shared/infra"
 )
 
-type BunUserNonceRepository struct {
+type BunLoginNonceRepository struct {
 	db *bun.DB
 }
 
-func NewBunUserNonceRepository(ctx context.Context, db *bun.DB) (*BunUserNonceRepository, error) {
-	r := &BunUserNonceRepository{
+func NewBunLoginNonceRepository(ctx context.Context, db *bun.DB) (*BunLoginNonceRepository, error) {
+	r := &BunLoginNonceRepository{
 		db: db,
 	}
 	tx := infra.ExtractTx(ctx, r.db)
 	_, err := tx.NewCreateTable().
-		Model((*userNonce)(nil)).
+		Model((*loginNonce)(nil)).
 		IfNotExists().
 		Exec(ctx)
 	if err != nil {
@@ -35,9 +35,9 @@ func NewBunUserNonceRepository(ctx context.Context, db *bun.DB) (*BunUserNonceRe
 	return r, nil
 }
 
-func (r *BunUserNonceRepository) Save(ctx context.Context, nonce server.UserLoginNonce) error {
+func (r *BunLoginNonceRepository) Save(ctx context.Context, nonce server.LoginNonce) error {
 	tx := infra.ExtractTx(ctx, r.db)
-	n := new(userNonce)
+	n := &loginNonce{}
 	copier.Copy(n, &nonce)
 	_, err := tx.NewInsert().
 		Model(n).
@@ -49,10 +49,10 @@ func (r *BunUserNonceRepository) Save(ctx context.Context, nonce server.UserLogi
 	return nil
 }
 
-func (r *BunUserNonceRepository) Consume(ctx context.Context, id uuid.UUID) (server.UserLoginNonce, error) {
+func (r *BunLoginNonceRepository) Consume(ctx context.Context, id uuid.UUID) (server.LoginNonce, error) {
 	tx := infra.ExtractTx(ctx, r.db)
-	n := new(userNonce)
-	nonce := server.UserLoginNonce{}
+	n := &loginNonce{}
+	nonce := server.LoginNonce{}
 	err := tx.NewSelect().
 		Model(n).
 		Where("user_id = ?", id).
@@ -74,7 +74,7 @@ func (r *BunUserNonceRepository) Consume(ctx context.Context, id uuid.UUID) (ser
 	return nonce, nil
 }
 
-type userNonce struct {
+type loginNonce struct {
 	UserID    uuid.UUID `bun:",pk"`
 	Nonce     []byte    `bun:",unique,nullzero"`
 	CreatedAt time.Time

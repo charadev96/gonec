@@ -1,10 +1,11 @@
 syntax = "proto3";
 
-import "google/protobuf/timestamp.proto";
-
 package gonec.admin.v1;
 
-option go_package = "github.com/charadev96/gonec/api/admin/gen";
+import "google/protobuf/timestamp.proto";
+import "shared/core.proto";
+
+option go_package = "github.com/charadev96/gonec/gen/admin";
 
 service UserService {
   rpc CreateUser(CreateUserRequest) returns (CreateUserReply);
@@ -28,11 +29,6 @@ enum UserState {
   USER_STATE_ACTIVE = 2;
 }
 
-message ServerPublicIdentity {
-  string ip_address = 1;
-  bytes public_key = 2;
-}
-
 message User {
   string id = 1;
   string name = 2;
@@ -40,40 +36,28 @@ message User {
   UserState state = 4;
 }
 
-message UserInvite {
-  string user_id = 1;
-  bytes token = 2;
-  google.protobuf.Timestamp not_before = 3;
-  google.protobuf.Timestamp not_after = 4;
-}
-
-message UserInviteManifest {
-  ServerPublicIdentity server = 1;
-  UserInvite invite = 2;
-}
-
 message CreateUserRequest {}
 
 message CreateUserReply {
-  string id = 1;
+  string user_id = 1;
 }
 
 message CreateInviteRequest {
-  string id = 1;
+  string user_id = 1;
   google.protobuf.Timestamp not_before = 2;
   google.protobuf.Timestamp not_after = 3;
 }
 
 message CreateInviteReply {
-  UserInvite invite = 1;
+  shared.v1.InviteCredential invite = 1;
 }
 
 message ExportInviteRequest {
-  string id = 1;
+  string user_id = 1;
 }
 
 message ExportInviteReply {
-  UserInviteManifest manifest = 1;
+  shared.v1.InviteTicket ticket = 1;
 }
 
 message GetByIDRequest {
@@ -89,7 +73,7 @@ message GetUserReply {
 }
 
 message GetInviteReply {
-  UserInvite invite = 1;
+  shared.v1.InviteCredential invite = 1;
 }
 
 message ListUsersRequest {

@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package gonec.user.v1;
+
+import "shared/core.proto";
+
+option go_package = "github.com/charadev96/gonec/gen/user";
+
+service AuthService {
+  rpc Register(RegisterRequest) returns (RegisterReply);
+  rpc Login(LoginRequest) returns (LoginReply);
+  rpc Logout(LogoutRequest) returns (LogoutReply);
+}
+
+message RegisterRequest {
+  string connection_id = 1;
+  shared.v1.InviteTicket ticket = 2; 
+}
+
+message RegisterReply {}
+
+message LoginRequest {
+  string connection_id = 1;
+}
+
+message LoginReply {}
+
+message LogoutRequest {}
+
+message LogoutReply {}

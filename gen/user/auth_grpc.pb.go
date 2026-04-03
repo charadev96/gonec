@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             v6.33.1
-// source: auth.proto
+// source: user/auth.proto
 
-package gen
+package user
 
 import (
 	context "context"
@@ -19,10 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_Register_FullMethodName      = "/gonec.messaging.v1.AuthService/Register"
-	AuthService_InitiateLogin_FullMethodName = "/gonec.messaging.v1.AuthService/InitiateLogin"
-	AuthService_CompleteLogin_FullMethodName = "/gonec.messaging.v1.AuthService/CompleteLogin"
-	AuthService_Logout_FullMethodName        = "/gonec.messaging.v1.AuthService/Logout"
+	AuthService_Register_FullMethodName = "/gonec.user.v1.AuthService/Register"
+	AuthService_Login_FullMethodName    = "/gonec.user.v1.AuthService/Login"
+	AuthService_Logout_FullMethodName   = "/gonec.user.v1.AuthService/Logout"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -30,8 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthServiceClient interface {
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterReply, error)
-	InitiateLogin(ctx context.Context, in *InitiateLoginRequest, opts ...grpc.CallOption) (*InitiateLoginReply, error)
-	CompleteLogin(ctx context.Context, in *CompleteLoginRequest, opts ...grpc.CallOption) (*CompleteLoginReply, error)
+	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginReply, error)
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutReply, error)
 }
 
@@ -53,20 +51,10 @@ func (c *authServiceClient) Register(ctx context.Context, in *RegisterRequest, o
 	return out, nil
 }
 
-func (c *authServiceClient) InitiateLogin(ctx context.Context, in *InitiateLoginRequest, opts ...grpc.CallOption) (*InitiateLoginReply, error) {
+func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(InitiateLoginReply)
-	err := c.cc.Invoke(ctx, AuthService_InitiateLogin_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authServiceClient) CompleteLogin(ctx context.Context, in *CompleteLoginRequest, opts ...grpc.CallOption) (*CompleteLoginReply, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CompleteLoginReply)
-	err := c.cc.Invoke(ctx, AuthService_CompleteLogin_FullMethodName, in, out, cOpts...)
+	out := new(LoginReply)
+	err := c.cc.Invoke(ctx, AuthService_Login_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -88,8 +76,7 @@ func (c *authServiceClient) Logout(ctx context.Context, in *LogoutRequest, opts 
 // for forward compatibility.
 type AuthServiceServer interface {
 	Register(context.Context, *RegisterRequest) (*RegisterReply, error)
-	InitiateLogin(context.Context, *InitiateLoginRequest) (*InitiateLoginReply, error)
-	CompleteLogin(context.Context, *CompleteLoginRequest) (*CompleteLoginReply, error)
+	Login(context.Context, *LoginRequest) (*LoginReply, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutReply, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
@@ -104,11 +91,8 @@ type UnimplementedAuthServiceServer struct{}
 func (UnimplementedAuthServiceServer) Register(context.Context, *RegisterRequest) (*RegisterReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method Register not implemented")
 }
-func (UnimplementedAuthServiceServer) InitiateLogin(context.Context, *InitiateLoginRequest) (*InitiateLoginReply, error) {
-	return nil, status.Error(codes.Unimplemented, "method InitiateLogin not implemented")
-}
-func (UnimplementedAuthServiceServer) CompleteLogin(context.Context, *CompleteLoginRequest) (*CompleteLoginReply, error) {
-	return nil, status.Error(codes.Unimplemented, "method CompleteLogin not implemented")
+func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*LoginReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method Login not implemented")
 }
 func (UnimplementedAuthServiceServer) Logout(context.Context, *LogoutRequest) (*LogoutReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method Logout not implemented")
@@ -152,38 +136,20 @@ func _AuthService_Register_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthService_InitiateLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(InitiateLoginRequest)
+func _AuthService_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServiceServer).InitiateLogin(ctx, in)
+		return srv.(AuthServiceServer).Login(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AuthService_InitiateLogin_FullMethodName,
+		FullMethod: AuthService_Login_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).InitiateLogin(ctx, req.(*InitiateLoginRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AuthService_CompleteLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CompleteLoginRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServiceServer).CompleteLogin(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthService_CompleteLogin_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).CompleteLogin(ctx, req.(*CompleteLoginRequest))
+		return srv.(AuthServiceServer).Login(ctx, req.(*LoginRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -210,7 +176,7 @@ func _AuthService_Logout_Handler(srv interface{}, ctx context.Context, dec func(
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AuthService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "gonec.messaging.v1.AuthService",
+	ServiceName: "gonec.user.v1.AuthService",
 	HandlerType: (*AuthServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -218,12 +184,8 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AuthService_Register_Handler,
 		},
 		{
-			MethodName: "InitiateLogin",
-			Handler:    _AuthService_InitiateLogin_Handler,
-		},
-		{
-			MethodName: "CompleteLogin",
-			Handler:    _AuthService_CompleteLogin_Handler,
+			MethodName: "Login",
+			Handler:    _AuthService_Login_Handler,
 		},
 		{
 			MethodName: "Logout",
@@ -231,5 +193,5 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "auth.proto",
+	Metadata: "user/auth.proto",
 }

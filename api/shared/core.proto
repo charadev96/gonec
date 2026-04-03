@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package gonec.shared.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/charadev96/gonec/gen/shared";
+
+message ServerIdentity {
+  string ip_address = 1;
+  bytes public_key = 2;
+}
+
+message InviteCredential {
+  string user_id = 1;
+  bytes token = 2;
+  google.protobuf.Timestamp not_before = 3;
+  google.protobuf.Timestamp not_after = 4;
+}
+
+message InviteTicket {
+  ServerIdentity server = 1;
+  InviteCredential credential = 2;
+}
+
+message Session {
+  string id = 1;
+  string user_id = 2;
+  bytes token = 3;
+}

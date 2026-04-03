@@ -11,17 +11,18 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jinzhu/copier"
 
 	server "github.com/charadev96/gonec/internal/server/domain"
 	shared "github.com/charadev96/gonec/internal/shared/domain"
 )
 
 type UserService struct {
-	Server   shared.ServerPublicIdentity
+	Server   shared.ServerIdentity
 	Users    server.UserRepository
-	Invites  server.UserInviteRepository
-	Nonces   server.UserNonceRepository
-	Sessions server.UserSessionRepository
+	Invites  server.InviteCredentialRepository
+	Nonces   server.LoginNonceRepository
+	Sessions server.SessionRepository
 	TXRunner shared.TransactionRunner
 	Rand     io.Reader
 }
@@ -31,8 +32,8 @@ type CreateInviteOptions struct {
 	NotAfter  time.Time
 }
 
-func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts CreateInviteOptions) (server.UserInvite, error) {
-	inv := server.UserInvite{}
+func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts CreateInviteOptions) (shared.InviteCredential, error) {
+	inv := shared.InviteCredential{}
 	if _, err := s.Users.GetByID(ctx, id); err != nil && errors.Is(err, shared.ErrNotExist) {
 		return inv, err
 	}
@@ -58,7 +59,7 @@ func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts Creat
 		return inv, fmt.Errorf("invalid invite time period, NotAfter must be after NotBefore")
 	}
 
-	inv = server.UserInvite{
+	inv = shared.InviteCredential{
 		UserID:    id,
 		Token:     tok,
 		NotBefore: opts.NotBefore,
@@ -73,7 +74,7 @@ func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts Creat
 }
 
 func (s *UserService) CreateLoginNonce(ctx context.Context, id uuid.UUID) ([]byte, error) {
-	nonce := server.UserLoginNonce{}
+	nonce := server.LoginNonce{}
 	user, err := s.Users.GetByID(ctx, id)
 	if err != nil && errors.Is(err, shared.ErrNotExist) {
 		return nil, err
@@ -92,9 +93,9 @@ func (s *UserService) CreateLoginNonce(ctx context.Context, id uuid.UUID) ([]byt
 		return nil, fmt.Errorf("failed to generate login nonce: %w", err)
 	}
 
-	nonce = server.UserLoginNonce{
+	nonce = server.LoginNonce{
 		UserID:    id,
-		Nonce:     tok,
+		Value:     tok,
 		CreatedAt: time.Now(),
 	}
 
@@ -105,16 +106,16 @@ func (s *UserService) CreateLoginNonce(ctx context.Context, id uuid.UUID) ([]byt
 	return tok, nil
 }
 
-func (s *UserService) ExportInvite(ctx context.Context, id uuid.UUID) (shared.UserInviteManifest, error) {
-	mnf := shared.UserInviteManifest{}
-	inv, err := s.Invites.GetByUserID(ctx, id)
+func (s *UserService) ExportInvite(ctx context.Context, id uuid.UUID) (shared.InviteTicket, error) {
+	mnf := shared.InviteTicket{}
+	cred, err := s.Invites.GetByUserID(ctx, id)
 	if err != nil && errors.Is(err, shared.ErrNotExist) {
 		return mnf, err
 	}
 
-	mnf = shared.UserInviteManifest{
-		Server: s.Server,
-		Invite: inv,
+	mnf = shared.InviteTicket{
+		Server:     s.Server,
+		Credential: cred,
 	}
 
 	return mnf, nil
@@ -164,7 +165,7 @@ func (s *UserService) RegisterUser(ctx context.Context, id uuid.UUID, tok []byte
 	})
 }
 
-func (s *UserService) VerifyUserSession(ctx context.Context, sess server.UserSession) error {
+func (s *UserService) VerifySession(ctx context.Context, sess shared.Session) error {
 	session, err := s.Sessions.GetByID(ctx, sess.ID)
 	if err != nil {
 		return err
@@ -183,8 +184,8 @@ func (s *UserService) VerifyUserSession(ctx context.Context, sess server.UserSes
 	return nil
 }
 
-func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (server.UserSession, error) {
-	sess := server.UserSession{}
+func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (shared.Session, error) {
+	sess := shared.Session{}
 	user, err := s.Users.GetByID(ctx, id)
 	if err != nil && errors.Is(err, shared.ErrNotExist) {
 		return sess, err
@@ -201,7 +202,7 @@ func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (
 	if expired := time.Now().After(nonce.CreatedAt.Add(time.Minute)); expired {
 		return sess, fmt.Errorf("challenge nonce expired, please retry")
 	}
-	if ok := ed25519.Verify(user.PublicKey, nonce.Nonce, sig); !ok {
+	if ok := ed25519.Verify(user.PublicKey, nonce.Value, sig); !ok {
 		return sess, fmt.Errorf("signature mismatch")
 	}
 
@@ -215,21 +216,24 @@ func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (
 		return sess, fmt.Errorf("failed to generate session token: %w", err)
 	}
 
-	sess = server.UserSession{
-		ID:        uuid.New(),
-		Token:     tok,
-		CreatedAt: time.Now(),
+	sess = shared.Session{
+		ID:     uuid.New(),
+		UserID: id,
+		Token:  tok,
 	}
 
-	if err = s.Sessions.Save(ctx, sess); err != nil {
+	session := server.Session{}
+	copier.Copy(&session, &sess)
+	session.CreatedAt = time.Now()
+	if err = s.Sessions.Save(ctx, session); err != nil {
 		return sess, err
 	}
 
 	return sess, nil
 }
 
-func (s *UserService) LogoutUser(ctx context.Context, sess server.UserSession) error {
-	if err := s.VerifyUserSession(ctx, sess); err != nil {
+func (s *UserService) LogoutUser(ctx context.Context, sess shared.Session) error {
+	if err := s.VerifySession(ctx, sess); err != nil {
 		return err
 	}
 	if err := s.Sessions.Delete(ctx, sess.ID); err != nil {

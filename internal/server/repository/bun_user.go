@@ -50,7 +50,7 @@ func (r *BunUserRepository) Create(ctx context.Context) (uuid.UUID, error) {
 
 func (r *BunUserRepository) GetByID(ctx context.Context, id uuid.UUID) (server.User, error) {
 	tx := infra.ExtractTx(ctx, r.db)
-	u := new(user)
+	u := &user{}
 	usr := server.User{}
 	err := tx.NewSelect().
 		Model(u).
@@ -68,7 +68,7 @@ func (r *BunUserRepository) GetByID(ctx context.Context, id uuid.UUID) (server.U
 
 func (r *BunUserRepository) GetByName(ctx context.Context, name string) (server.User, error) {
 	tx := infra.ExtractTx(ctx, r.db)
-	u := new(user)
+	u := &user{}
 	usr := server.User{}
 	err := tx.NewSelect().
 		Model(u).
