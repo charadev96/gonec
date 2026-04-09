@@ -177,7 +177,7 @@ func (s *UserService) VerifySession(ctx context.Context, sess shared.Session) er
 	if subtle.ConstantTimeCompare(session.Token, sess.Token) == 0 {
 		return fmt.Errorf("token mismatch")
 	}
-	if ok := time.Now().After(session.CreatedAt.Add(time.Hour * 12)); !ok {
+	if expired := time.Now().After(session.CreatedAt.Add(time.Hour * 12)); expired {
 		return fmt.Errorf("session expired, please login again")
 	}
 
