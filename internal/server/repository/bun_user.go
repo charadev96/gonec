@@ -86,6 +86,9 @@ func (r *BunUserRepository) GetByName(ctx context.Context, name string) (server.
 
 func (r *BunUserRepository) List(ctx context.Context, q server.UserListQuery) (server.UserList, error) {
 	var users []server.User
+	if q.Limit < 1 {
+		q.Limit = 50
+	}
 	query := r.db.NewSelect().
 		Model(&users).
 		Limit(q.Limit + 1).
