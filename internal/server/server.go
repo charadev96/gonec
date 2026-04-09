@@ -72,6 +72,7 @@ func (s *Server) ServeAdmin(ctx context.Context) error {
 func (s *Server) ServeMessaging(ctx context.Context) error {
 	config := &tls.Config{
 		Certificates: []tls.Certificate{s.Messaging.Certificate},
+		NextProtos:   []string{"h2"},
 	}
 	ln, err := tls.Listen("tcp", s.Messaging.Addr, config)
 	if err != nil {
