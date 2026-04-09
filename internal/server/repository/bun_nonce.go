@@ -76,6 +76,6 @@ func (r *BunLoginNonceRepository) Consume(ctx context.Context, id uuid.UUID) (se
 
 type loginNonce struct {
 	UserID    uuid.UUID `bun:",pk"`
-	Nonce     []byte    `bun:",unique,nullzero"`
+	Value     []byte    `bun:",unique,nullzero"`
 	CreatedAt time.Time
 }
