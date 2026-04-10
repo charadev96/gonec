@@ -84,11 +84,10 @@ func (s *AuthService) Register(ctx context.Context, id string, t shared.InviteTi
 	}
 
 	err = s.connect(ctx, id)
-	defer s.disconnect()
-
 	if err != nil {
 		return fmt.Errorf("failed to connect to server: %w", err)
 	}
+	defer s.disconnect()
 
 	cl, err := BindClient(s, gatewaypb.NewAuthServiceClient)
 	if err != nil {
