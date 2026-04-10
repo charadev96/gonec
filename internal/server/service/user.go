@@ -18,13 +18,57 @@ import (
 )
 
 type UserService struct {
-	Server   shared.ServerIdentity
-	Users    server.UserRepository
-	Invites  server.InviteCredentialRepository
-	Nonces   server.LoginNonceRepository
-	Sessions server.SessionRepository
-	TXRunner shared.TransactionRunner
-	Rand     io.Reader
+	users    server.UserRepository
+	invites  server.InviteCredentialRepository
+	nonces   server.LoginNonceRepository
+	sessions server.SessionRepository
+	txRunner shared.TransactionRunner
+
+	server shared.ServerIdentity
+
+	rand io.Reader
+}
+
+type UserServiceOption func(*UserService)
+
+func UserWithRand(r io.Reader) UserServiceOption {
+	return func(s *UserService) {
+		s.rand = r
+	}
+}
+
+func NewUserService(
+	id shared.ServerIdentity,
+	usr server.UserRepository,
+	inv server.InviteCredentialRepository,
+	nnc server.LoginNonceRepository,
+	ses server.SessionRepository,
+	txr shared.TransactionRunner,
+	opts ...UserServiceOption,
+) *UserService {
+	s := &UserService{
+		users:    usr,
+		invites:  inv,
+		nonces:   nnc,
+		sessions: ses,
+		txRunner: txr,
+
+		server: id,
+
+		rand: rand.Reader,
+	}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
+}
+
+func (s *UserService) Users() server.UserRepository {
+	return s.users
+}
+
+func (s *UserService) Invites() server.InviteCredentialRepository {
+	return s.invites
 }
 
 type CreateInviteOptions struct {
@@ -34,16 +78,12 @@ type CreateInviteOptions struct {
 
 func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts CreateInviteOptions) (shared.InviteCredential, error) {
 	inv := shared.InviteCredential{}
-	if _, err := s.Users.GetByID(ctx, id); err != nil && errors.Is(err, shared.ErrNotExist) {
+	if _, err := s.users.GetByID(ctx, id); err != nil && errors.Is(err, shared.ErrNotExist) {
 		return inv, err
 	}
 
-	rnd := s.Rand
-	if rnd == nil {
-		rnd = rand.Reader
-	}
 	tok := make([]byte, 32)
-	_, err := rnd.Read(tok)
+	_, err := s.rand.Read(tok)
 	if err != nil {
 		return inv, fmt.Errorf("failed to generate invite token: %w", err)
 	}
@@ -66,7 +106,7 @@ func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts Creat
 		NotAfter:  opts.NotAfter,
 	}
 
-	if err := s.Invites.Save(ctx, inv); err != nil {
+	if err := s.invites.Save(ctx, inv); err != nil {
 		return inv, err
 	}
 
@@ -75,7 +115,7 @@ func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts Creat
 
 func (s *UserService) CreateLoginNonce(ctx context.Context, id uuid.UUID) ([]byte, error) {
 	nonce := server.LoginNonce{}
-	user, err := s.Users.GetByID(ctx, id)
+	user, err := s.users.GetByID(ctx, id)
 	if err != nil && errors.Is(err, shared.ErrNotExist) {
 		return nil, err
 	}
@@ -83,12 +123,8 @@ func (s *UserService) CreateLoginNonce(ctx context.Context, id uuid.UUID) ([]byt
 		return nil, fmt.Errorf("user not registered")
 	}
 
-	rnd := s.Rand
-	if rnd == nil {
-		rnd = rand.Reader
-	}
 	tok := make([]byte, 32)
-	_, err = rnd.Read(tok)
+	_, err = s.rand.Read(tok)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate login nonce: %w", err)
 	}
@@ -99,7 +135,7 @@ func (s *UserService) CreateLoginNonce(ctx context.Context, id uuid.UUID) ([]byt
 		CreatedAt: time.Now(),
 	}
 
-	if err := s.Nonces.Save(ctx, nonce); err != nil {
+	if err := s.nonces.Save(ctx, nonce); err != nil {
 		return nil, err
 	}
 
@@ -108,13 +144,13 @@ func (s *UserService) CreateLoginNonce(ctx context.Context, id uuid.UUID) ([]byt
 
 func (s *UserService) ExportInvite(ctx context.Context, id uuid.UUID) (shared.InviteTicket, error) {
 	mnf := shared.InviteTicket{}
-	cred, err := s.Invites.GetByUserID(ctx, id)
+	cred, err := s.invites.GetByUserID(ctx, id)
 	if err != nil && errors.Is(err, shared.ErrNotExist) {
 		return mnf, err
 	}
 
 	mnf = shared.InviteTicket{
-		Server:     s.Server,
+		Server:     s.server,
 		Credential: cred,
 	}
 
@@ -122,11 +158,11 @@ func (s *UserService) ExportInvite(ctx context.Context, id uuid.UUID) (shared.In
 }
 
 func (s *UserService) RegisterUser(ctx context.Context, id uuid.UUID, tok []byte, pk ed25519.PublicKey) error {
-	if _, err := s.Users.GetByID(ctx, id); err != nil && errors.Is(err, shared.ErrNotExist) {
+	if _, err := s.users.GetByID(ctx, id); err != nil && errors.Is(err, shared.ErrNotExist) {
 		return err
 	}
 
-	inv, err := s.Invites.GetByUserID(ctx, id)
+	inv, err := s.invites.GetByUserID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -151,14 +187,14 @@ func (s *UserService) RegisterUser(ctx context.Context, id uuid.UUID, tok []byte
 		)
 	}
 
-	return s.TXRunner.Exec(ctx, func(ctx context.Context) error {
-		if err := s.Users.UpdateState(ctx, id, server.StateRegistered); err != nil {
+	return s.txRunner.Exec(ctx, func(ctx context.Context) error {
+		if err := s.users.UpdateState(ctx, id, server.StateRegistered); err != nil {
 			return err
 		}
-		if err := s.Users.UpdatePublicKey(ctx, id, pk); err != nil {
+		if err := s.users.UpdatePublicKey(ctx, id, pk); err != nil {
 			return err
 		}
-		if err := s.Invites.Delete(ctx, id); err != nil {
+		if err := s.invites.Delete(ctx, id); err != nil {
 			return err
 		}
 		return nil
@@ -166,7 +202,7 @@ func (s *UserService) RegisterUser(ctx context.Context, id uuid.UUID, tok []byte
 }
 
 func (s *UserService) VerifySession(ctx context.Context, sess shared.Session) error {
-	session, err := s.Sessions.GetByID(ctx, sess.ID)
+	session, err := s.sessions.GetByID(ctx, sess.ID)
 	if err != nil {
 		return err
 	}
@@ -186,7 +222,7 @@ func (s *UserService) VerifySession(ctx context.Context, sess shared.Session) er
 
 func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (shared.Session, error) {
 	sess := shared.Session{}
-	user, err := s.Users.GetByID(ctx, id)
+	user, err := s.users.GetByID(ctx, id)
 	if err != nil && errors.Is(err, shared.ErrNotExist) {
 		return sess, err
 	}
@@ -194,7 +230,7 @@ func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (
 		return sess, fmt.Errorf("user not registered")
 	}
 
-	nonce, err := s.Nonces.Consume(ctx, id)
+	nonce, err := s.nonces.Consume(ctx, id)
 	if err != nil && errors.Is(err, shared.ErrNotExist) {
 		return sess, err
 	}
@@ -206,12 +242,8 @@ func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (
 		return sess, fmt.Errorf("signature mismatch")
 	}
 
-	rnd := s.Rand
-	if rnd == nil {
-		rnd = rand.Reader
-	}
 	tok := make([]byte, 32)
-	_, err = rnd.Read(tok)
+	_, err = s.rand.Read(tok)
 	if err != nil {
 		return sess, fmt.Errorf("failed to generate session token: %w", err)
 	}
@@ -225,7 +257,7 @@ func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (
 	session := server.Session{}
 	copier.Copy(&session, &sess)
 	session.CreatedAt = time.Now()
-	if err = s.Sessions.Save(ctx, session); err != nil {
+	if err = s.sessions.Save(ctx, session); err != nil {
 		return sess, err
 	}
 
@@ -236,7 +268,7 @@ func (s *UserService) LogoutUser(ctx context.Context, sess shared.Session) error
 	if err := s.VerifySession(ctx, sess); err != nil {
 		return err
 	}
-	if err := s.Sessions.Delete(ctx, sess.ID); err != nil {
+	if err := s.sessions.Delete(ctx, sess.ID); err != nil {
 		return err
 	}
 
@@ -244,14 +276,14 @@ func (s *UserService) LogoutUser(ctx context.Context, sess shared.Session) error
 }
 
 func (s *UserService) DeleteUser(ctx context.Context, id uuid.UUID) error {
-	return s.TXRunner.Exec(ctx, func(ctx context.Context) error {
-		if err := s.Users.Delete(ctx, id); err != nil {
+	return s.txRunner.Exec(ctx, func(ctx context.Context) error {
+		if err := s.users.Delete(ctx, id); err != nil {
 			return err
 		}
-		if err := s.Invites.Delete(ctx, id); err != nil {
+		if err := s.invites.Delete(ctx, id); err != nil {
 			return err
 		}
-		if err := s.Sessions.Delete(ctx, id); err != nil {
+		if err := s.sessions.Delete(ctx, id); err != nil {
 			return err
 		}
 		return nil

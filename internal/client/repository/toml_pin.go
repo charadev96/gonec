@@ -20,10 +20,19 @@ const (
 )
 
 type TOMLConnPinRepository struct {
-	FilePath string
+	file string
 
 	data       schema
 	modifiedAt time.Time
+}
+
+func NewTOMLConnPinRepository(f string) *TOMLConnPinRepository {
+	conns := make(map[string]*connPin)
+	r := &TOMLConnPinRepository{
+		file: f,
+		data: schema{conns},
+	}
+	return r
 }
 
 func (r *TOMLConnPinRepository) Get(id string) (client.ConnPin, error) {
@@ -162,7 +171,7 @@ type schema struct {
 }
 
 func (r *TOMLConnPinRepository) fileModified() (bool, error) {
-	info, err := os.Stat(r.FilePath)
+	info, err := os.Stat(r.file)
 	if err != nil {
 		return false, fmt.Errorf("failed to read file timestamp: %w", err)
 	}
@@ -175,7 +184,7 @@ func (r *TOMLConnPinRepository) fileModified() (bool, error) {
 }
 
 func (r *TOMLConnPinRepository) load() error {
-	_, err := toml.DecodeFile(r.FilePath, &r.data)
+	_, err := toml.DecodeFile(r.file, &r.data)
 	if err != nil {
 		return fmt.Errorf("failed to load repository: %w", err)
 	}
@@ -183,7 +192,7 @@ func (r *TOMLConnPinRepository) load() error {
 }
 
 func (r *TOMLConnPinRepository) save() error {
-	file, err := os.OpenFile(r.FilePath, os.O_WRONLY|os.O_TRUNC, permRepository)
+	file, err := os.OpenFile(r.file, os.O_WRONLY|os.O_TRUNC, permRepository)
 	if err != nil {
 		return fmt.Errorf("failed to save repository: %w", err)
 	}

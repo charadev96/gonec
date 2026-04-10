@@ -43,20 +43,15 @@ type AuthService struct {
 
 type AuthServiceOption func(*AuthService)
 
-func AuthWithPinRepository(r client.ConnPinRepository) AuthServiceOption {
-	return func(s *AuthService) {
-		s.pins = r
-	}
-}
-
 func AuthWithRand(r io.Reader) AuthServiceOption {
 	return func(s *AuthService) {
 		s.rand = r
 	}
 }
 
-func NewAuthService(opts ...AuthServiceOption) *AuthService {
+func NewAuthService(p client.ConnPinRepository, opts ...AuthServiceOption) *AuthService {
 	s := &AuthService{
+		pins: p,
 		rand: rand.Reader,
 	}
 	for _, opt := range opts {

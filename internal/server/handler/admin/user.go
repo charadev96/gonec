@@ -23,7 +23,7 @@ type UserServiceHandler struct {
 }
 
 func (h *UserServiceHandler) CreateUser(ctx context.Context, req *adminpb.CreateUserRequest) (*adminpb.CreateUserReply, error) {
-	id, err := h.Service.Users.Create(ctx)
+	id, err := h.Service.Users().Create(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -69,7 +69,7 @@ func (h *UserServiceHandler) GetUserByID(ctx context.Context, req *adminpb.GetBy
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	user, err := h.Service.Users.GetByID(ctx, id)
+	user, err := h.Service.Users().GetByID(ctx, id)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -79,7 +79,7 @@ func (h *UserServiceHandler) GetUserByID(ctx context.Context, req *adminpb.GetBy
 }
 
 func (h *UserServiceHandler) GetUserByName(ctx context.Context, req *adminpb.GetByNameRequest) (*adminpb.GetUserReply, error) {
-	user, err := h.Service.Users.GetByName(ctx, req.Name)
+	user, err := h.Service.Users().GetByName(ctx, req.Name)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -93,7 +93,7 @@ func (h *UserServiceHandler) GetInviteByUserID(ctx context.Context, req *adminpb
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	invite, err := h.Service.Invites.GetByUserID(ctx, id)
+	invite, err := h.Service.Invites().GetByUserID(ctx, id)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -115,7 +115,7 @@ func (h *UserServiceHandler) ListUsers(ctx context.Context, req *adminpb.ListUse
 		Limit:  int(req.Limit),
 		Cursor: cursor,
 	}
-	list, err := h.Service.Users.List(ctx, query)
+	list, err := h.Service.Users().List(ctx, query)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -150,7 +150,7 @@ func (h *UserServiceHandler) DeleteInvite(ctx context.Context, req *adminpb.Dele
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	err = h.Service.Invites.Delete(ctx, id)
+	err = h.Service.Invites().Delete(ctx, id)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
