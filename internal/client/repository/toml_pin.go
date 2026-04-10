@@ -5,10 +5,11 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/google/uuid"
+	"io"
 	"os"
 	"time"
 
-	"github.com/BurntSushi/toml"
+	"github.com/goccy/go-yaml"
 	"github.com/jinzhu/copier"
 
 	client "github.com/charadev96/gonec/internal/client/domain"
@@ -19,23 +20,22 @@ const (
 	permRepository = 0644
 )
 
-type TOMLConnPinRepository struct {
+type YAMLConnPinRepository struct {
 	file string
 
 	data       schema
 	modifiedAt time.Time
 }
 
-func NewTOMLConnPinRepository(f string) *TOMLConnPinRepository {
-	conns := make(map[string]*connPin)
-	r := &TOMLConnPinRepository{
+func NewYAMLConnPinRepository(f string) *YAMLConnPinRepository {
+	r := &YAMLConnPinRepository{
 		file: f,
-		data: schema{conns},
+		data: schema{make(map[string]*connPin)},
 	}
 	return r
 }
 
-func (r *TOMLConnPinRepository) Get(id string) (client.ConnPin, error) {
+func (r *YAMLConnPinRepository) Get(id string) (client.ConnPin, error) {
 	modified, err := r.fileModified()
 	pin := client.ConnPin{}
 	if err != nil {
@@ -52,12 +52,12 @@ func (r *TOMLConnPinRepository) Get(id string) (client.ConnPin, error) {
 	}
 	copier.Copy(&pin, p)
 	pin.ID = id
-	pin.Server.PublicKey = p.Server.PublicKey.PublicKey
-	pin.User.PrivateKey = p.User.PrivateKey.PrivateKey
+	pin.Server.PublicKey = []byte(p.Server.PublicKey)
+	pin.User.PrivateKey = []byte(p.User.PrivateKey)
 	return pin, nil
 }
 
-func (r *TOMLConnPinRepository) Set(id string, pin client.ConnPin) error {
+func (r *YAMLConnPinRepository) Set(id string, pin client.ConnPin) error {
 	modified, err := r.fileModified()
 	if err != nil {
 		return err
@@ -71,15 +71,15 @@ func (r *TOMLConnPinRepository) Set(id string, pin client.ConnPin) error {
 		r.data.Conns[id] = &connPin{}
 	}
 	copier.Copy(r.data.Conns[id], pin)
-	r.data.Conns[id].Server.PublicKey.PublicKey = pin.Server.PublicKey
-	r.data.Conns[id].User.PrivateKey.PrivateKey = pin.User.PrivateKey
+	r.data.Conns[id].Server.PublicKey = []byte(pin.Server.PublicKey)
+	r.data.Conns[id].User.PrivateKey = []byte(pin.User.PrivateKey)
 	if err := r.save(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *TOMLConnPinRepository) Delete(id string) error {
+func (r *YAMLConnPinRepository) Delete(id string) error {
 	_, ok := r.data.Conns[id]
 	if !ok {
 		return shared.ErrNotExist
@@ -109,68 +109,67 @@ func decodeBase64(src []byte, size int) ([]byte, error) {
 
 func encodeBase64(src []byte, size int) ([]byte, error) {
 	s := len(src)
+	dst := make([]byte, base64.StdEncoding.EncodedLen(size))
 	if s == 0 {
-		return []byte{}, nil
+		return dst, nil
 	}
 	if s != size {
-		return nil, fmt.Errorf("base64: bad length %d, requires %d", s, size)
+		return dst, fmt.Errorf("base64: bad length %d, requires %d", s, size)
 	}
-	dst := make([]byte, base64.StdEncoding.EncodedLen(len(src)))
 	base64.StdEncoding.Encode(dst, src)
 	return dst, nil
 }
 
-type publicKey struct {
-	ed25519.PublicKey
-}
+type publicKey []byte
 
-func (p *publicKey) UnmarshalText(text []byte) error {
+func (p *publicKey) UnmarshalYAML(text []byte) error {
 	key, err := decodeBase64(text, ed25519.PublicKeySize)
 	if err == nil {
-		p.PublicKey = key
+		*p = key
 	}
 	return err
 }
 
-func (p *publicKey) MarshalText() ([]byte, error) {
-	text, err := encodeBase64(p.PublicKey, ed25519.PublicKeySize)
+func (p publicKey) MarshalYAML() ([]byte, error) {
+	text, err := encodeBase64(p, ed25519.PublicKeySize)
 	return text, err
 }
 
-type privateKey struct {
-	ed25519.PrivateKey
-}
+type privateKey []byte
 
-func (p *privateKey) UnmarshalText(text []byte) error {
+func (p *privateKey) UnmarshalYAML(text []byte) error {
 	key, err := decodeBase64(text, ed25519.PrivateKeySize)
+	if err != nil {
+		fmt.Println(text)
+	}
 	if err == nil {
-		p.PrivateKey = key
+		*p = key
 	}
 	return err
 }
 
-func (p *privateKey) MarshalText() ([]byte, error) {
-	text, err := encodeBase64(p.PrivateKey, ed25519.PrivateKeySize)
+func (p privateKey) MarshalYAML() ([]byte, error) {
+	text, err := encodeBase64(p, ed25519.PrivateKeySize)
 	return text, err
 }
 
 type connPin struct {
 	User struct {
-		ID         uuid.UUID  `toml:"id"`
-		Name       string     `toml:"name"`
-		PrivateKey privateKey `toml:"private_key"`
-	} `toml:"user"`
+		ID         uuid.UUID  `yaml:"id"`
+		Name       string     `yaml:"name,omitempty"`
+		PrivateKey privateKey `yaml:"private_key,omitempty"`
+	} `yaml:"user"`
 	Server struct {
-		IPAddress string    `toml:"ip_address"`
-		PublicKey publicKey `toml:"public_key"`
-	} `toml:"server"`
+		IPAddress string    `yaml:"ip_address"`
+		PublicKey publicKey `yaml:"public_key"`
+	} `yaml:"server"`
 }
 
 type schema struct {
-	Conns map[string]*connPin `toml:"connections"`
+	Conns map[string]*connPin `yaml:"connections"`
 }
 
-func (r *TOMLConnPinRepository) fileModified() (bool, error) {
+func (r *YAMLConnPinRepository) fileModified() (bool, error) {
 	info, err := os.Stat(r.file)
 	if err != nil {
 		return false, fmt.Errorf("failed to read file timestamp: %w", err)
@@ -183,20 +182,45 @@ func (r *TOMLConnPinRepository) fileModified() (bool, error) {
 	return mod, nil
 }
 
-func (r *TOMLConnPinRepository) load() error {
-	_, err := toml.DecodeFile(r.file, &r.data)
+func (r *YAMLConnPinRepository) load() error {
+	f, err := os.OpenFile(r.file, os.O_RDONLY, permRepository)
 	if err != nil {
-		return fmt.Errorf("failed to load repository: %w", err)
+		return fmt.Errorf("failed to open file: %w", err)
 	}
+	defer f.Close()
+
+	raw, err := io.ReadAll(f)
+	if err != nil {
+		return fmt.Errorf("failed to read file: %w", err)
+	}
+
+	err = yaml.Unmarshal(raw, &r.data)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal yaml: %w", err)
+	}
+	if r.data.Conns == nil {
+		r.data.Conns = make(map[string]*connPin)
+	}
+
 	return nil
 }
 
-func (r *TOMLConnPinRepository) save() error {
-	file, err := os.OpenFile(r.file, os.O_WRONLY|os.O_TRUNC, permRepository)
+func (r *YAMLConnPinRepository) save() error {
+	raw, err := yaml.Marshal(r.data)
 	if err != nil {
-		return fmt.Errorf("failed to save repository: %w", err)
+		return fmt.Errorf("failed to marshal yaml: %w", err)
 	}
-	enc := toml.NewEncoder(file)
-	enc.Indent = ""
-	return enc.Encode(r.data)
+
+	f, err := os.OpenFile(r.file, os.O_WRONLY|os.O_TRUNC, permRepository)
+	if err != nil {
+		return fmt.Errorf("failed to open file: %w", err)
+	}
+	defer f.Close()
+
+	_, err = f.Write(raw)
+	if err != nil {
+		return fmt.Errorf("failed to write to file: %w", err)
+	}
+
+	return nil
 }
