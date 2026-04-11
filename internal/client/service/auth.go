@@ -6,7 +6,6 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -62,11 +61,11 @@ func NewAuthService(p client.ConnPinRepository, opts ...AuthServiceOption) *Auth
 
 func (s *AuthService) Register(ctx context.Context, id string, t shared.InviteTicket) error {
 	if s.status == AuthLoggedIn {
-		return errors.New("already logged in")
+		return client.ErrLoggedIn
 	}
 
 	if _, err := s.pins.Get(id); err == nil {
-		return errors.New("connection pin already exists")
+		return fmt.Errorf("get pin: %w", shared.ErrExist)
 	}
 
 	pub, prv, err := ed25519.GenerateKey(s.rand)
@@ -80,18 +79,18 @@ func (s *AuthService) Register(ctx context.Context, id string, t shared.InviteTi
 	}
 	err = s.pins.Set(id, pin)
 	if err != nil {
-		return err
+		return fmt.Errorf("set pin: %w", err)
 	}
 
 	err = s.connect(ctx, id)
 	if err != nil {
-		return fmt.Errorf("failed to connect to server: %w", err)
+		return fmt.Errorf("connect to server: %w", err)
 	}
 	defer s.disconnect()
 
 	cl, err := BindClient(s, gatewaypb.NewAuthServiceClient)
 	if err != nil {
-		return fmt.Errorf("failed to bind client: %w", err)
+		return err
 	}
 
 	_, err = cl.Register(ctx, &gatewaypb.RegisterRequest{
@@ -100,7 +99,7 @@ func (s *AuthService) Register(ctx context.Context, id string, t shared.InviteTi
 		PublicKey: pub,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to make register request: %w", err)
+		return fmt.Errorf("request register: %w", err)
 	}
 
 	return nil
@@ -108,12 +107,12 @@ func (s *AuthService) Register(ctx context.Context, id string, t shared.InviteTi
 
 func (s *AuthService) Login(ctx context.Context, id string) error {
 	if s.status == AuthLoggedIn {
-		return errors.New("already logged in")
+		return client.ErrLoggedIn
 	}
 
 	err := s.connect(ctx, id)
 	if err != nil {
-		return fmt.Errorf("failed to connect to server: %w", err)
+		return fmt.Errorf("connect to server: %w", err)
 	}
 
 	cl, err := BindClient(s, gatewaypb.NewAuthServiceClient)
@@ -123,14 +122,14 @@ func (s *AuthService) Login(ctx context.Context, id string) error {
 
 	pin, err := s.Pin()
 	if err != nil {
-		return err
+		return fmt.Errorf("get active pin: %w", err)
 	}
 
 	repInitiate, err := cl.InitiateLogin(ctx, &gatewaypb.InitiateLoginRequest{
 		UserId: pin.User.ID.String(),
 	})
 	if err != nil {
-		return fmt.Errorf("failed to initiate login: %w", err)
+		return fmt.Errorf("request login request: %w", err)
 	}
 
 	sig := ed25519.Sign(pin.User.PrivateKey, repInitiate.Nonce)
@@ -139,7 +138,7 @@ func (s *AuthService) Login(ctx context.Context, id string) error {
 		Signature: sig,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to complete login: %w", err)
+		return fmt.Errorf("request complete login: %w", err)
 	}
 
 	s.session = &shared.Session{}
@@ -157,7 +156,7 @@ func (s *AuthService) Logout(ctx context.Context) error {
 
 	session, err := s.Session()
 	if err != nil {
-		return err
+		return fmt.Errorf("get active session: %w", err)
 	}
 
 	se := &sharedpb.Session{}
@@ -168,7 +167,7 @@ func (s *AuthService) Logout(ctx context.Context) error {
 		Auth: se,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to gracefully logout: %w", err)
+		return fmt.Errorf("request logout: %w", err)
 	}
 
 	s.session = nil
@@ -179,17 +178,17 @@ func (s *AuthService) Logout(ctx context.Context) error {
 func BindClient[T any](s *AuthService, c func(grpc.ClientConnInterface) T) (T, error) {
 	cl := c(s.conn)
 	if s.status == AuthDisconnected {
-		return cl, errors.New("no active connection")
+		return cl, client.ErrNoConn
 	}
 	return cl, nil
 }
 
 func (s *AuthService) Session() (shared.Session, error) {
 	if s.status == AuthDisconnected {
-		return shared.Session{}, errors.New("no active connection")
+		return shared.Session{}, client.ErrNoConn
 	}
 	if s.status != AuthLoggedIn {
-		return shared.Session{}, errors.New("no active session")
+		return shared.Session{}, client.ErrNoLoggedIn
 	}
 	if s.session == nil {
 		panic("invariant violation: session status is active but struct is nil")
@@ -199,7 +198,7 @@ func (s *AuthService) Session() (shared.Session, error) {
 
 func (s *AuthService) Pin() (client.ConnPin, error) {
 	if s.status == AuthDisconnected {
-		return client.ConnPin{}, errors.New("no active connection")
+		return client.ConnPin{}, client.ErrNoConn
 	}
 	return s.pin, nil
 }
@@ -210,12 +209,12 @@ func (s *AuthService) Status() AuthServiceStatus {
 
 func (s *AuthService) connect(ctx context.Context, id string) error {
 	if s.status != AuthDisconnected {
-		return errors.New("already connected")
+		return client.ErrConn
 	}
 
 	pin, err := s.pins.Get(id)
 	if err != nil {
-		return fmt.Errorf("failed to get pin '%s': %w", id, err)
+		return fmt.Errorf("get pin %q: %w", id, err)
 	}
 
 	config := &tls.Config{
@@ -229,7 +228,7 @@ func (s *AuthService) connect(ctx context.Context, id string) error {
 		grpc.WithTransportCredentials(creds),
 	)
 	if err != nil {
-		return fmt.Errorf("failed to establish connection: %w", err)
+		return fmt.Errorf("establish connection: %w", err)
 	}
 
 	s.conn = conn
@@ -247,26 +246,26 @@ func (s *AuthService) disconnect() {
 func (s *AuthService) verifyServerCertificate(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
 	pin, err := s.pins.Get(s.pin.ID)
 	if err != nil {
-		return fmt.Errorf("failed to update pin '%s': %w", s.pin.ID, err)
+		return fmt.Errorf("update pin %q: %w", s.pin.ID, err)
 	}
 
 	tcpAddr, err := net.ResolveTCPAddr("tcp", pin.Server.IPAddress)
 	if err != nil {
-		return fmt.Errorf("failed to resolve server tcp address: %w", err)
+		return fmt.Errorf("resolve server tcp address: %w", err)
 	}
 
 	cert, err := x509.ParseCertificate(rawCerts[0])
 	if err != nil {
-		return fmt.Errorf("failed to parse certificate: %w", err)
+		return fmt.Errorf("parse certificate: %w", err)
 	}
 
 	_, ok := cert.PublicKey.(ed25519.PublicKey)
 	if !ok {
-		return fmt.Errorf("incorrect certificate public key format (must be ed25519)")
+		return fmt.Errorf("bad certificate key format, must be ed25519")
 	}
 
 	if err = cert.VerifyHostname(fmt.Sprintf("[%s]", tcpAddr.IP.String())); err != nil {
-		return fmt.Errorf("failed to verify certificate hostname: %w", err)
+		return fmt.Errorf("verify certificate hostname: %w", err)
 	}
 
 	now := time.Now()

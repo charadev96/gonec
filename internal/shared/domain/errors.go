@@ -4,4 +4,7 @@ import (
 	"errors"
 )
 
-var ErrNotExist = errors.New("entry does not exist in repository")
+var (
+	ErrNotExist = errors.New("resource does not exist")
+	ErrExist    = errors.New("resource already exists")
+)

@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"database/sql"
@@ -30,7 +29,7 @@ func NewBunSessionRepository(ctx context.Context, db *bun.DB) (*BunSessionReposi
 		IfNotExists().
 		Exec(ctx)
 	if err != nil {
-		return r, fmt.Errorf("failed to create repository: %w", err)
+		return r, err
 	}
 	return r, nil
 }
@@ -43,7 +42,7 @@ func (r *BunSessionRepository) Save(ctx context.Context, sess server.Session) er
 		Model(s).
 		Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to save session: %w", err)
+		return err
 	}
 	return nil
 }
@@ -60,7 +59,7 @@ func (r *BunSessionRepository) GetByID(ctx context.Context, id uuid.UUID) (serve
 		if errors.Is(err, sql.ErrNoRows) {
 			err = shared.ErrNotExist
 		}
-		return sess, fmt.Errorf("failed to get sesion: %w", err)
+		return sess, err
 	}
 	copier.Copy(&sess, s)
 	return sess, nil
@@ -74,7 +73,7 @@ func (r *BunSessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 		WherePK().
 		Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to delete session: %w", err)
+		return err
 	}
 	return nil
 }

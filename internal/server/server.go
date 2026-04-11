@@ -40,7 +40,7 @@ type Server struct {
 func (s *Server) ServeAdmin(ctx context.Context) error {
 	ln, err := net.Listen("tcp", s.Admin.Addr)
 	if err != nil {
-		return fmt.Errorf("failed to init server: %w", err)
+		return fmt.Errorf("init server: %w", err)
 	}
 	s.Admin.Logger.Info().
 		Str("address", s.Admin.Addr).
@@ -76,7 +76,7 @@ func (s *Server) ServeMessaging(ctx context.Context) error {
 	}
 	ln, err := tls.Listen("tcp", s.Messaging.Addr, config)
 	if err != nil {
-		return fmt.Errorf("failed to init server: %w", err)
+		return fmt.Errorf("init server: %w", err)
 	}
 	defer ln.Close()
 	s.Messaging.Logger.Info().

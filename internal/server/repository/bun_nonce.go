@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"database/sql"
@@ -30,7 +29,7 @@ func NewBunLoginNonceRepository(ctx context.Context, db *bun.DB) (*BunLoginNonce
 		IfNotExists().
 		Exec(ctx)
 	if err != nil {
-		return r, fmt.Errorf("failed to create repository: %w", err)
+		return r, err
 	}
 	return r, nil
 }
@@ -44,7 +43,7 @@ func (r *BunLoginNonceRepository) Save(ctx context.Context, nonce server.LoginNo
 		Replace().
 		Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to save nonce: %w", err)
+		return err
 	}
 	return nil
 }
@@ -61,14 +60,14 @@ func (r *BunLoginNonceRepository) Consume(ctx context.Context, id uuid.UUID) (se
 		if errors.Is(err, sql.ErrNoRows) {
 			err = shared.ErrNotExist
 		}
-		return nonce, fmt.Errorf("failed to get nonce: %w", err)
+		return nonce, err
 	}
 	_, err = tx.NewDelete().
 		Model(n).
 		WherePK().
 		Exec(ctx)
 	if err != nil {
-		return nonce, fmt.Errorf("failed to delete nonce: %w", err)
+		return nonce, err
 	}
 	copier.Copy(&nonce, n)
 	return nonce, nil

@@ -39,16 +39,16 @@ func (r *YAMLConnPinRepository) Get(id string) (client.ConnPin, error) {
 	modified, err := r.fileModified()
 	pin := client.ConnPin{}
 	if err != nil {
-		return pin, err
+		return pin, fmt.Errorf("compare timestamp: %w", err)
 	}
 	if modified {
 		if err := r.load(); err != nil {
-			return pin, err
+			return pin, fmt.Errorf("load repository: %w", err)
 		}
 	}
 	p, ok := r.data.Conns[id]
 	if !ok {
-		return pin, shared.ErrNotExist
+		return pin, fmt.Errorf("%q: %w", id, shared.ErrNotExist)
 	}
 	copier.Copy(&pin, p)
 	pin.ID = id
@@ -60,11 +60,11 @@ func (r *YAMLConnPinRepository) Get(id string) (client.ConnPin, error) {
 func (r *YAMLConnPinRepository) Set(id string, pin client.ConnPin) error {
 	modified, err := r.fileModified()
 	if err != nil {
-		return err
+		return fmt.Errorf("compare timestamp: %w", err)
 	}
 	if modified {
 		if err := r.load(); err != nil {
-			return err
+			return fmt.Errorf("load repository: %w", err)
 		}
 	}
 	if _, ok := r.data.Conns[id]; !ok {
@@ -74,7 +74,7 @@ func (r *YAMLConnPinRepository) Set(id string, pin client.ConnPin) error {
 	r.data.Conns[id].Server.PublicKey = []byte(pin.Server.PublicKey)
 	r.data.Conns[id].User.PrivateKey = []byte(pin.User.PrivateKey)
 	if err := r.save(); err != nil {
-		return err
+		return fmt.Errorf("save repository: %w", err)
 	}
 	return nil
 }
@@ -82,11 +82,11 @@ func (r *YAMLConnPinRepository) Set(id string, pin client.ConnPin) error {
 func (r *YAMLConnPinRepository) Delete(id string) error {
 	_, ok := r.data.Conns[id]
 	if !ok {
-		return shared.ErrNotExist
+		return fmt.Errorf("%q: %w", id, shared.ErrNotExist)
 	}
 	delete(r.data.Conns, id)
 	if err := r.save(); err != nil {
-		return err
+		return fmt.Errorf("save repository: %w", err)
 	}
 	return nil
 }
@@ -172,7 +172,7 @@ type schema struct {
 func (r *YAMLConnPinRepository) fileModified() (bool, error) {
 	info, err := os.Stat(r.file)
 	if err != nil {
-		return false, fmt.Errorf("failed to read file timestamp: %w", err)
+		return false, err
 	}
 	modTime := info.ModTime()
 	mod := !r.modifiedAt.Equal(modTime)
@@ -185,18 +185,18 @@ func (r *YAMLConnPinRepository) fileModified() (bool, error) {
 func (r *YAMLConnPinRepository) load() error {
 	f, err := os.OpenFile(r.file, os.O_RDONLY, permRepository)
 	if err != nil {
-		return fmt.Errorf("failed to open file: %w", err)
+		return err
 	}
 	defer f.Close()
 
 	raw, err := io.ReadAll(f)
 	if err != nil {
-		return fmt.Errorf("failed to read file: %w", err)
+		return fmt.Errorf("read file %s: %w", r.file, err)
 	}
 
 	err = yaml.Unmarshal(raw, &r.data)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal yaml: %w", err)
+		return fmt.Errorf("unmarshal yaml: %w", err)
 	}
 	if r.data.Conns == nil {
 		r.data.Conns = make(map[string]*connPin)
@@ -208,18 +208,18 @@ func (r *YAMLConnPinRepository) load() error {
 func (r *YAMLConnPinRepository) save() error {
 	raw, err := yaml.Marshal(r.data)
 	if err != nil {
-		return fmt.Errorf("failed to marshal yaml: %w", err)
+		return fmt.Errorf("marshal yaml: %w", err)
 	}
 
 	f, err := os.OpenFile(r.file, os.O_WRONLY|os.O_TRUNC, permRepository)
 	if err != nil {
-		return fmt.Errorf("failed to open file: %w", err)
+		return err
 	}
 	defer f.Close()
 
 	_, err = f.Write(raw)
 	if err != nil {
-		return fmt.Errorf("failed to write to file: %w", err)
+		return err
 	}
 
 	return nil

@@ -24,7 +24,7 @@ type Client struct {
 func (c *Client) ServeUser(ctx context.Context) error {
 	ln, err := net.Listen("tcp", c.Addr)
 	if err != nil {
-		return fmt.Errorf("failed to init server: %w", err)
+		return fmt.Errorf("init server: %w", err)
 	}
 	c.Logger.Info().
 		Str("address", c.Addr).

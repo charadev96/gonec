@@ -5,7 +5,6 @@ import (
 	"crypto/ed25519"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jinzhu/copier"
@@ -30,7 +29,7 @@ func NewBunUserRepository(ctx context.Context, db *bun.DB) (*BunUserRepository, 
 		IfNotExists().
 		Exec(ctx)
 	if err != nil {
-		return r, fmt.Errorf("failed to create repository: %w", err)
+		return r, err
 	}
 	return r, nil
 }
@@ -43,7 +42,7 @@ func (r *BunUserRepository) Create(ctx context.Context) (uuid.UUID, error) {
 		Model(u).
 		Exec(ctx)
 	if err != nil {
-		return uuid.Nil, fmt.Errorf("failed to create user: %w", err)
+		return uuid.Nil, err
 	}
 	return id, nil
 }
@@ -60,7 +59,7 @@ func (r *BunUserRepository) GetByID(ctx context.Context, id uuid.UUID) (server.U
 		if errors.Is(err, sql.ErrNoRows) {
 			err = shared.ErrNotExist
 		}
-		return usr, fmt.Errorf("failed to get user: %w", err)
+		return usr, err
 	}
 	copier.Copy(&usr, u)
 	return usr, nil
@@ -78,7 +77,7 @@ func (r *BunUserRepository) GetByName(ctx context.Context, name string) (server.
 		if errors.Is(err, sql.ErrNoRows) {
 			err = shared.ErrNotExist
 		}
-		return usr, fmt.Errorf("failed to get user: %w", err)
+		return usr, err
 	}
 	copier.Copy(&usr, u)
 	return usr, nil
@@ -120,7 +119,7 @@ func (r *BunUserRepository) UpdateName(ctx context.Context, id uuid.UUID, name s
 		WherePK().
 		Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to update user name: %w", err)
+		return err
 	}
 	return nil
 }
@@ -134,7 +133,7 @@ func (r *BunUserRepository) UpdatePublicKey(ctx context.Context, id uuid.UUID, p
 		WherePK().
 		Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to update user public key: %w", err)
+		return err
 	}
 	return nil
 }
@@ -148,7 +147,7 @@ func (r *BunUserRepository) UpdateState(ctx context.Context, id uuid.UUID, s ser
 		WherePK().
 		Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to update user state: %w", err)
+		return err
 	}
 	return nil
 }
@@ -161,7 +160,7 @@ func (r *BunUserRepository) Delete(ctx context.Context, id uuid.UUID) error {
 		WherePK().
 		Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to delete user: %w", err)
+		return err
 	}
 	return nil
 }

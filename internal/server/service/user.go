@@ -79,13 +79,13 @@ type CreateInviteOptions struct {
 func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts CreateInviteOptions) (shared.InviteCredential, error) {
 	inv := shared.InviteCredential{}
 	if _, err := s.users.GetByID(ctx, id); err != nil && errors.Is(err, shared.ErrNotExist) {
-		return inv, err
+		return inv, fmt.Errorf("get user: %w", err)
 	}
 
 	tok := make([]byte, 32)
 	_, err := s.rand.Read(tok)
 	if err != nil {
-		return inv, fmt.Errorf("failed to generate invite token: %w", err)
+		return inv, fmt.Errorf("generate token: %w", err)
 	}
 
 	unix := time.Unix(0, 0).UTC()
@@ -96,7 +96,7 @@ func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts Creat
 		opts.NotAfter = time.Now().AddDate(0, 0, 1)
 	}
 	if opts.NotAfter.Before(opts.NotBefore) {
-		return inv, fmt.Errorf("invalid invite time period, NotAfter must be after NotBefore")
+		return inv, fmt.Errorf("bad time period, NotAfter must be after NotBefore")
 	}
 
 	inv = shared.InviteCredential{
@@ -107,7 +107,7 @@ func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts Creat
 	}
 
 	if err := s.invites.Save(ctx, inv); err != nil {
-		return inv, err
+		return inv, fmt.Errorf("save invite: %w", err)
 	}
 
 	return inv, nil
@@ -117,7 +117,7 @@ func (s *UserService) CreateLoginNonce(ctx context.Context, id uuid.UUID) ([]byt
 	nonce := server.LoginNonce{}
 	user, err := s.users.GetByID(ctx, id)
 	if err != nil && errors.Is(err, shared.ErrNotExist) {
-		return nil, err
+		return nil, fmt.Errorf("get user: %w", err)
 	}
 	if user.State == server.StatePending {
 		return nil, fmt.Errorf("user not registered")
@@ -126,7 +126,7 @@ func (s *UserService) CreateLoginNonce(ctx context.Context, id uuid.UUID) ([]byt
 	tok := make([]byte, 32)
 	_, err = s.rand.Read(tok)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate login nonce: %w", err)
+		return nil, fmt.Errorf("generate login nonce: %w", err)
 	}
 
 	nonce = server.LoginNonce{
@@ -136,7 +136,7 @@ func (s *UserService) CreateLoginNonce(ctx context.Context, id uuid.UUID) ([]byt
 	}
 
 	if err := s.nonces.Save(ctx, nonce); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("save nonce: %w", err)
 	}
 
 	return tok, nil
@@ -146,7 +146,7 @@ func (s *UserService) ExportInvite(ctx context.Context, id uuid.UUID) (shared.In
 	mnf := shared.InviteTicket{}
 	cred, err := s.invites.GetByUserID(ctx, id)
 	if err != nil && errors.Is(err, shared.ErrNotExist) {
-		return mnf, err
+		return mnf, fmt.Errorf("get invite: %w", err)
 	}
 
 	mnf = shared.InviteTicket{
@@ -159,12 +159,12 @@ func (s *UserService) ExportInvite(ctx context.Context, id uuid.UUID) (shared.In
 
 func (s *UserService) RegisterUser(ctx context.Context, id uuid.UUID, tok []byte, pk ed25519.PublicKey) error {
 	if _, err := s.users.GetByID(ctx, id); err != nil && errors.Is(err, shared.ErrNotExist) {
-		return err
+		return fmt.Errorf("get user: %w", err)
 	}
 
 	inv, err := s.invites.GetByUserID(ctx, id)
 	if err != nil {
-		return err
+		return fmt.Errorf("get invite: %w", err)
 	}
 
 	if subtle.ConstantTimeCompare(inv.Token, tok) == 0 {
@@ -189,13 +189,13 @@ func (s *UserService) RegisterUser(ctx context.Context, id uuid.UUID, tok []byte
 
 	return s.txRunner.Exec(ctx, func(ctx context.Context) error {
 		if err := s.users.UpdateState(ctx, id, server.StateRegistered); err != nil {
-			return err
+			return fmt.Errorf("update user (state): %w", err)
 		}
 		if err := s.users.UpdatePublicKey(ctx, id, pk); err != nil {
-			return err
+			return fmt.Errorf("update user (public key): %w", err)
 		}
 		if err := s.invites.Delete(ctx, id); err != nil {
-			return err
+			return fmt.Errorf("delete invite: %w", err)
 		}
 		return nil
 	})
@@ -204,7 +204,7 @@ func (s *UserService) RegisterUser(ctx context.Context, id uuid.UUID, tok []byte
 func (s *UserService) VerifySession(ctx context.Context, sess shared.Session) error {
 	session, err := s.sessions.GetByID(ctx, sess.ID)
 	if err != nil {
-		return err
+		return fmt.Errorf("get session: %w", err)
 	}
 
 	if session.UserID != sess.UserID {
@@ -214,7 +214,7 @@ func (s *UserService) VerifySession(ctx context.Context, sess shared.Session) er
 		return fmt.Errorf("token mismatch")
 	}
 	if expired := time.Now().After(session.CreatedAt.Add(time.Hour * 12)); expired {
-		return fmt.Errorf("session expired, please login again")
+		return fmt.Errorf("session expired")
 	}
 
 	return nil
@@ -224,7 +224,7 @@ func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (
 	sess := shared.Session{}
 	user, err := s.users.GetByID(ctx, id)
 	if err != nil && errors.Is(err, shared.ErrNotExist) {
-		return sess, err
+		return sess, fmt.Errorf("get user: %w", err)
 	}
 	if user.State == server.StatePending {
 		return sess, fmt.Errorf("user not registered")
@@ -232,11 +232,11 @@ func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (
 
 	nonce, err := s.nonces.Consume(ctx, id)
 	if err != nil && errors.Is(err, shared.ErrNotExist) {
-		return sess, err
+		return sess, fmt.Errorf("consume nonce: %w", err)
 	}
 
 	if expired := time.Now().After(nonce.CreatedAt.Add(time.Minute)); expired {
-		return sess, fmt.Errorf("challenge nonce expired, please retry")
+		return sess, fmt.Errorf("challenge nonce expired")
 	}
 	if ok := ed25519.Verify(user.PublicKey, nonce.Value, sig); !ok {
 		return sess, fmt.Errorf("signature mismatch")
@@ -245,7 +245,7 @@ func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (
 	tok := make([]byte, 32)
 	_, err = s.rand.Read(tok)
 	if err != nil {
-		return sess, fmt.Errorf("failed to generate session token: %w", err)
+		return sess, fmt.Errorf("generate session token: %w", err)
 	}
 
 	sess = shared.Session{
@@ -258,7 +258,7 @@ func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (
 	copier.Copy(&session, &sess)
 	session.CreatedAt = time.Now()
 	if err = s.sessions.Save(ctx, session); err != nil {
-		return sess, err
+		return sess, fmt.Errorf("save session: %w", err)
 	}
 
 	return sess, nil
@@ -266,10 +266,10 @@ func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (
 
 func (s *UserService) LogoutUser(ctx context.Context, sess shared.Session) error {
 	if err := s.VerifySession(ctx, sess); err != nil {
-		return err
+		return fmt.Errorf("verify session: %w", err)
 	}
 	if err := s.sessions.Delete(ctx, sess.ID); err != nil {
-		return err
+		return fmt.Errorf("delete session: %w", err)
 	}
 
 	return nil
@@ -278,13 +278,13 @@ func (s *UserService) LogoutUser(ctx context.Context, sess shared.Session) error
 func (s *UserService) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	return s.txRunner.Exec(ctx, func(ctx context.Context) error {
 		if err := s.users.Delete(ctx, id); err != nil {
-			return err
+			return fmt.Errorf("delete user: %w", err)
 		}
 		if err := s.invites.Delete(ctx, id); err != nil {
-			return err
+			return fmt.Errorf("delete invite: %w", err)
 		}
 		if err := s.sessions.Delete(ctx, id); err != nil {
-			return err
+			return fmt.Errorf("delete session: %w", err)
 		}
 		return nil
 	})

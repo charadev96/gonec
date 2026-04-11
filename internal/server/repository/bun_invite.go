@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"database/sql"
@@ -29,7 +28,7 @@ func NewBunInviteCredentialRepository(ctx context.Context, db *bun.DB) (*BunInvi
 		IfNotExists().
 		Exec(ctx)
 	if err != nil {
-		return r, fmt.Errorf("failed to create repository: %w", err)
+		return r, err
 	}
 	return r, nil
 }
@@ -42,7 +41,7 @@ func (r *BunInviteCredentialRepository) Save(ctx context.Context, cred shared.In
 		Model(c).
 		Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to save invite: %w", err)
+		return err
 	}
 	return nil
 }
@@ -59,7 +58,7 @@ func (r *BunInviteCredentialRepository) GetByUserID(ctx context.Context, id uuid
 		if errors.Is(err, sql.ErrNoRows) {
 			err = shared.ErrNotExist
 		}
-		return cred, fmt.Errorf("failed to get invite: %w", err)
+		return cred, err
 	}
 	copier.Copy(&cred, c)
 	return cred, nil
@@ -73,7 +72,7 @@ func (r *BunInviteCredentialRepository) Delete(ctx context.Context, id uuid.UUID
 		WherePK().
 		Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to delete invite: %w", err)
+		return err
 	}
 	return nil
 }
