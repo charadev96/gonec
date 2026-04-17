@@ -2,6 +2,7 @@ package domain
 
 import (
 	"crypto/ed25519"
+
 	"github.com/google/uuid"
 
 	shared "github.com/charadev96/gonec/internal/shared/domain"

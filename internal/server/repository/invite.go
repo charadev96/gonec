@@ -2,10 +2,10 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"time"
 
-	"database/sql"
 	"github.com/google/uuid"
 	"github.com/jinzhu/copier"
 	"github.com/uptrace/bun"

@@ -4,12 +4,12 @@ import (
 	"crypto/ed25519"
 	"encoding/base64"
 	"fmt"
-	"github.com/google/uuid"
 	"io"
 	"os"
 	"time"
 
 	"github.com/goccy/go-yaml"
+	"github.com/google/uuid"
 	"github.com/jinzhu/copier"
 
 	client "github.com/charadev96/gonec/internal/client/domain"
