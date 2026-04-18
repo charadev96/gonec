@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package gonec.user.v1;
 
-import "shared/core.proto";
+import "shared/auth.proto";
 
 option go_package = "github.com/charadev96/gonec/gen/user";
 

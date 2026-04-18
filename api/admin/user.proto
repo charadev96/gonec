@@ -3,7 +3,7 @@ syntax = "proto3";
 package gonec.admin.v1;
 
 import "google/protobuf/timestamp.proto";
-import "shared/core.proto";
+import "shared/auth.proto";
 
 option go_package = "github.com/charadev96/gonec/gen/admin";
 
