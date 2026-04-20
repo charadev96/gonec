@@ -4,14 +4,12 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jinzhu/copier"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	adminpb "github.com/charadev96/gonec/gen/admin"
-	sharedpb "github.com/charadev96/gonec/gen/shared"
 	server "github.com/charadev96/gonec/internal/server/domain"
 	"github.com/charadev96/gonec/internal/server/service"
 	"github.com/charadev96/gonec/internal/shared/handler"
+	pb "github.com/charadev96/gonec/internal/shared/pb"
 )
 
 // TODO: Sanitize errors
@@ -42,11 +40,7 @@ func (h *UserServiceHandler) CreateInvite(ctx context.Context, req *adminpb.Crea
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
-	i := &sharedpb.InviteCredential{}
-	copier.Copy(i, &inv)
-	i.NotBefore = timestamppb.New(inv.NotBefore)
-	i.NotAfter = timestamppb.New(inv.NotAfter)
-	return &adminpb.CreateInviteReply{Invite: i}, nil
+	return &adminpb.CreateInviteReply{Invite: pb.InviteCredentialToPB(inv)}, nil
 }
 
 func (h *UserServiceHandler) ExportInvite(ctx context.Context, req *adminpb.ExportInviteRequest) (*adminpb.ExportInviteReply, error) {
@@ -58,9 +52,7 @@ func (h *UserServiceHandler) ExportInvite(ctx context.Context, req *adminpb.Expo
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
-	t := &sharedpb.InviteTicket{}
-	copier.Copy(t, &tck)
-	return &adminpb.ExportInviteReply{Ticket: t}, nil
+	return &adminpb.ExportInviteReply{Ticket: pb.InviteTicketToPB(tck)}, nil
 }
 
 func (h *UserServiceHandler) GetUserByID(ctx context.Context, req *adminpb.GetByIDRequest) (*adminpb.GetUserReply, error) {
@@ -72,9 +64,7 @@ func (h *UserServiceHandler) GetUserByID(ctx context.Context, req *adminpb.GetBy
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
-	u := new(adminpb.User)
-	copier.Copy(u, &user)
-	return &adminpb.GetUserReply{User: u}, nil
+	return &adminpb.GetUserReply{User: pb.UserToPB(user)}, nil
 }
 
 func (h *UserServiceHandler) GetUserByName(ctx context.Context, req *adminpb.GetByNameRequest) (*adminpb.GetUserReply, error) {
@@ -82,9 +72,7 @@ func (h *UserServiceHandler) GetUserByName(ctx context.Context, req *adminpb.Get
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
-	u := new(adminpb.User)
-	copier.Copy(u, &user)
-	return &adminpb.GetUserReply{User: u}, nil
+	return &adminpb.GetUserReply{User: pb.UserToPB(user)}, nil
 }
 
 func (h *UserServiceHandler) GetInviteByUserID(ctx context.Context, req *adminpb.GetByIDRequest) (*adminpb.GetInviteReply, error) {
@@ -96,9 +84,7 @@ func (h *UserServiceHandler) GetInviteByUserID(ctx context.Context, req *adminpb
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
-	i := &sharedpb.InviteCredential{}
-	copier.Copy(i, &invite)
-	return &adminpb.GetInviteReply{Invite: i}, nil
+	return &adminpb.GetInviteReply{Invite: pb.InviteCredentialToPB(invite)}, nil
 }
 
 func (h *UserServiceHandler) ListUsers(ctx context.Context, req *adminpb.ListUsersRequest) (*adminpb.ListUsersReply, error) {
@@ -110,6 +96,7 @@ func (h *UserServiceHandler) ListUsers(ctx context.Context, req *adminpb.ListUse
 			return nil, handler.ErrArg(err)
 		}
 	}
+
 	query := server.UserListQuery{
 		Limit:  int(req.Limit),
 		Cursor: cursor,
@@ -119,10 +106,9 @@ func (h *UserServiceHandler) ListUsers(ctx context.Context, req *adminpb.ListUse
 		return nil, handler.ErrInternal(err)
 	}
 
-	var users []*adminpb.User
-	for _, u := range list.Users {
-		users = append(users, &adminpb.User{})
-		copier.Copy(users[len(users)-1], &u)
+	users := make([]*adminpb.User, len(list.Users))
+	for i, u := range list.Users {
+		users[i] = pb.UserToPB(u)
 	}
 
 	return &adminpb.ListUsersReply{

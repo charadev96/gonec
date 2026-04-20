@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jinzhu/copier"
 	"github.com/uptrace/bun"
 
 	server "github.com/charadev96/gonec/internal/server/domain"
@@ -36,8 +35,7 @@ func NewBunLoginNonceRepository(ctx context.Context, db *bun.DB) (*BunLoginNonce
 
 func (r *BunLoginNonceRepository) Save(ctx context.Context, nonce server.LoginNonce) error {
 	tx := infra.ExtractTx(ctx, r.db)
-	n := &loginNonce{}
-	copier.Copy(n, &nonce)
+	n := nonceToDB(nonce)
 	_, err := tx.NewInsert().
 		Model(n).
 		Replace().
@@ -51,7 +49,6 @@ func (r *BunLoginNonceRepository) Save(ctx context.Context, nonce server.LoginNo
 func (r *BunLoginNonceRepository) Consume(ctx context.Context, id uuid.UUID) (server.LoginNonce, error) {
 	tx := infra.ExtractTx(ctx, r.db)
 	n := &loginNonce{}
-	nonce := server.LoginNonce{}
 	err := tx.NewSelect().
 		Model(n).
 		Where("user_id = ?", id).
@@ -60,21 +57,36 @@ func (r *BunLoginNonceRepository) Consume(ctx context.Context, id uuid.UUID) (se
 		if errors.Is(err, sql.ErrNoRows) {
 			err = shared.ErrNotExist
 		}
-		return nonce, err
+		return server.LoginNonce{}, err
 	}
 	_, err = tx.NewDelete().
 		Model(n).
 		WherePK().
 		Exec(ctx)
 	if err != nil {
-		return nonce, err
+		return server.LoginNonce{}, err
 	}
-	copier.Copy(&nonce, n)
-	return nonce, nil
+	return nonceFromDB(*n), nil
 }
 
 type loginNonce struct {
 	UserID    uuid.UUID `bun:",pk"`
 	Value     []byte    `bun:",unique,nullzero"`
 	CreatedAt time.Time
+}
+
+func nonceFromDB(n loginNonce) server.LoginNonce {
+	return server.LoginNonce{
+		UserID:    n.UserID,
+		Value:     n.Value,
+		CreatedAt: n.CreatedAt,
+	}
+}
+
+func nonceToDB(nonce server.LoginNonce) *loginNonce {
+	return &loginNonce{
+		UserID:    nonce.UserID,
+		Value:     nonce.Value,
+		CreatedAt: nonce.CreatedAt,
+	}
 }

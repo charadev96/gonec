@@ -7,7 +7,6 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/jinzhu/copier"
 	"github.com/uptrace/bun"
 
 	server "github.com/charadev96/gonec/internal/server/domain"
@@ -50,7 +49,6 @@ func (r *BunUserRepository) Create(ctx context.Context) (uuid.UUID, error) {
 func (r *BunUserRepository) GetByID(ctx context.Context, id uuid.UUID) (server.User, error) {
 	tx := infra.ExtractTx(ctx, r.db)
 	u := &user{}
-	usr := server.User{}
 	err := tx.NewSelect().
 		Model(u).
 		Where("id = ?", id).
@@ -59,16 +57,14 @@ func (r *BunUserRepository) GetByID(ctx context.Context, id uuid.UUID) (server.U
 		if errors.Is(err, sql.ErrNoRows) {
 			err = shared.ErrNotExist
 		}
-		return usr, err
+		return server.User{}, err
 	}
-	copier.Copy(&usr, u)
-	return usr, nil
+	return userFromDB(*u), nil
 }
 
 func (r *BunUserRepository) GetByName(ctx context.Context, name string) (server.User, error) {
 	tx := infra.ExtractTx(ctx, r.db)
 	u := &user{}
-	usr := server.User{}
 	err := tx.NewSelect().
 		Model(u).
 		Where("name = ?", name).
@@ -77,10 +73,9 @@ func (r *BunUserRepository) GetByName(ctx context.Context, name string) (server.
 		if errors.Is(err, sql.ErrNoRows) {
 			err = shared.ErrNotExist
 		}
-		return usr, err
+		return server.User{}, err
 	}
-	copier.Copy(&usr, u)
-	return usr, nil
+	return userFromDB(*u), nil
 }
 
 func (r *BunUserRepository) List(ctx context.Context, q server.UserListQuery) (server.UserList, error) {
@@ -172,4 +167,22 @@ type user struct {
 	Name      string            `bun:",unique,nullzero"`
 	PublicKey ed25519.PublicKey `bun:",unique,nullzero"`
 	State     server.UserState  `bun:",notnull"`
+}
+
+func userFromDB(u user) server.User {
+	return server.User{
+		ID:        u.ID,
+		Name:      u.Name,
+		PublicKey: u.PublicKey,
+		State:     u.State,
+	}
+}
+
+func userToDB(usr server.User) *user {
+	return &user{
+		ID:        usr.ID,
+		Name:      usr.Name,
+		PublicKey: usr.PublicKey,
+		State:     usr.State,
+	}
 }

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jinzhu/copier"
 	"github.com/uptrace/bun"
 
 	shared "github.com/charadev96/gonec/internal/shared/domain"
@@ -35,8 +34,7 @@ func NewBunInviteCredentialRepository(ctx context.Context, db *bun.DB) (*BunInvi
 
 func (r *BunInviteCredentialRepository) Save(ctx context.Context, cred shared.InviteCredential) error {
 	tx := infra.ExtractTx(ctx, r.db)
-	c := &inviteCredential{}
-	copier.Copy(c, &cred)
+	c := inviteToDB(cred)
 	_, err := tx.NewInsert().
 		Model(c).
 		Exec(ctx)
@@ -49,7 +47,6 @@ func (r *BunInviteCredentialRepository) Save(ctx context.Context, cred shared.In
 func (r *BunInviteCredentialRepository) GetByUserID(ctx context.Context, id uuid.UUID) (shared.InviteCredential, error) {
 	tx := infra.ExtractTx(ctx, r.db)
 	c := &inviteCredential{}
-	cred := shared.InviteCredential{}
 	err := tx.NewSelect().
 		Model(c).
 		Where("user_id = ?", id).
@@ -58,10 +55,9 @@ func (r *BunInviteCredentialRepository) GetByUserID(ctx context.Context, id uuid
 		if errors.Is(err, sql.ErrNoRows) {
 			err = shared.ErrNotExist
 		}
-		return cred, err
+		return shared.InviteCredential{}, err
 	}
-	copier.Copy(&cred, c)
-	return cred, nil
+	return inviteFromDB(*c), nil
 }
 
 func (r *BunInviteCredentialRepository) Delete(ctx context.Context, id uuid.UUID) error {
@@ -82,4 +78,22 @@ type inviteCredential struct {
 	Token     []byte    `bun:",unique,nullzero"`
 	NotBefore time.Time
 	NotAfter  time.Time
+}
+
+func inviteFromDB(c inviteCredential) shared.InviteCredential {
+	return shared.InviteCredential{
+		UserID:    c.UserID,
+		Token:     c.Token,
+		NotBefore: c.NotBefore,
+		NotAfter:  c.NotAfter,
+	}
+}
+
+func inviteToDB(cred shared.InviteCredential) *inviteCredential {
+	return &inviteCredential{
+		UserID:    cred.UserID,
+		Token:     cred.Token,
+		NotBefore: cred.NotBefore,
+		NotAfter:  cred.NotAfter,
+	}
 }

@@ -4,13 +4,12 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jinzhu/copier"
 
 	gatewaypb "github.com/charadev96/gonec/gen/gateway"
-	sharedpb "github.com/charadev96/gonec/gen/shared"
 	"github.com/charadev96/gonec/internal/server/service"
 	shared "github.com/charadev96/gonec/internal/shared/domain"
 	"github.com/charadev96/gonec/internal/shared/handler"
+	pb "github.com/charadev96/gonec/internal/shared/pb"
 )
 
 // TODO: Sanitize errors
@@ -52,10 +51,8 @@ func (h *AuthServiceHandler) CompleteLogin(ctx context.Context, req *gatewaypb.C
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
-	s := &sharedpb.Session{}
-	copier.Copy(s, sess)
 	return &gatewaypb.CompleteLoginReply{
-		Auth: s,
+		Auth: pb.SessionToPB(sess),
 	}, nil
 }
 

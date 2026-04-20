@@ -10,7 +10,6 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/google/uuid"
-	"github.com/jinzhu/copier"
 
 	client "github.com/charadev96/gonec/internal/client/domain"
 	shared "github.com/charadev96/gonec/internal/shared/domain"
@@ -37,24 +36,19 @@ func NewYAMLConnPinRepository(f string) *YAMLConnPinRepository {
 
 func (r *YAMLConnPinRepository) Get(id string) (client.ConnPin, error) {
 	modified, err := r.fileModified()
-	pin := client.ConnPin{}
 	if err != nil {
-		return pin, fmt.Errorf("compare timestamp: %w", err)
+		return client.ConnPin{}, fmt.Errorf("compare timestamp: %w", err)
 	}
 	if modified {
 		if err := r.load(); err != nil {
-			return pin, fmt.Errorf("load repository: %w", err)
+			return client.ConnPin{}, fmt.Errorf("load repository: %w", err)
 		}
 	}
 	p, ok := r.data.Conns[id]
 	if !ok {
-		return pin, fmt.Errorf("%q: %w", id, shared.ErrNotExist)
+		return client.ConnPin{}, fmt.Errorf("%q: %w", id, shared.ErrNotExist)
 	}
-	copier.Copy(&pin, p)
-	pin.ID = id
-	pin.Server.PublicKey = []byte(p.Server.PublicKey)
-	pin.User.PrivateKey = []byte(p.User.PrivateKey)
-	return pin, nil
+	return connPinFromDB(p, id), nil
 }
 
 func (r *YAMLConnPinRepository) Set(id string, pin client.ConnPin) error {
@@ -67,12 +61,7 @@ func (r *YAMLConnPinRepository) Set(id string, pin client.ConnPin) error {
 			return fmt.Errorf("load repository: %w", err)
 		}
 	}
-	if _, ok := r.data.Conns[id]; !ok {
-		r.data.Conns[id] = &connPin{}
-	}
-	copier.Copy(r.data.Conns[id], pin)
-	r.data.Conns[id].Server.PublicKey = []byte(pin.Server.PublicKey)
-	r.data.Conns[id].User.PrivateKey = []byte(pin.User.PrivateKey)
+	r.data.Conns[id] = connPinToDB(pin)
 	if err := r.save(); err != nil {
 		return fmt.Errorf("save repository: %w", err)
 	}
@@ -163,6 +152,30 @@ type connPin struct {
 		IPAddress string    `yaml:"ip_address"`
 		PublicKey publicKey `yaml:"public_key"`
 	} `yaml:"server"`
+}
+
+func connPinFromDB(p *connPin, id string) client.ConnPin {
+	return client.ConnPin{
+		ID: id,
+		User: client.UserPrivateIdentity{
+			ID:         p.User.ID,
+			PrivateKey: ed25519.PrivateKey(p.User.PrivateKey),
+		},
+		Server: shared.ServerIdentity{
+			IPAddress: p.Server.IPAddress,
+			PublicKey: ed25519.PublicKey(p.Server.PublicKey),
+		},
+	}
+}
+
+func connPinToDB(pin client.ConnPin) *connPin {
+	p := &connPin{}
+	p.User.ID = pin.User.ID
+	p.User.Name = ""
+	p.User.PrivateKey = privateKey(pin.User.PrivateKey)
+	p.Server.IPAddress = pin.Server.IPAddress
+	p.Server.PublicKey = publicKey(pin.Server.PublicKey)
+	return p
 }
 
 type schema struct {

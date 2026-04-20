@@ -11,14 +11,13 @@ import (
 	"net"
 	"time"
 
-	"github.com/jinzhu/copier"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
 	gatewaypb "github.com/charadev96/gonec/gen/gateway"
-	sharedpb "github.com/charadev96/gonec/gen/shared"
 	client "github.com/charadev96/gonec/internal/client/domain"
 	shared "github.com/charadev96/gonec/internal/shared/domain"
+	pb "github.com/charadev96/gonec/internal/shared/pb"
 )
 
 type AuthServiceStatus int
@@ -149,8 +148,10 @@ func (s *AuthService) Login(ctx context.Context, id string) error {
 	}
 
 	fail = false
-	s.session = &shared.Session{}
-	copier.Copy(s.session, repComplete.Auth)
+	*s.session, err = pb.SessionFromPB(repComplete.Auth)
+	if err != nil {
+		return fmt.Errorf("parse session: %w", err)
+	}
 	s.status = AuthLoggedIn
 
 	return nil
@@ -167,12 +168,9 @@ func (s *AuthService) Logout(ctx context.Context) error {
 		return fmt.Errorf("get active session: %w", err)
 	}
 
-	se := &sharedpb.Session{}
-	copier.Copy(se, session)
-
 	defer s.disconnect()
 	_, err = cl.Logout(ctx, &gatewaypb.LogoutRequest{
-		Auth: se,
+		Auth: pb.SessionToPB(session),
 	})
 	if err != nil {
 		return fmt.Errorf("request logout: %w", err)

@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jinzhu/copier"
 
 	server "github.com/charadev96/gonec/internal/server/domain"
 	shared "github.com/charadev96/gonec/internal/shared/domain"
@@ -253,10 +252,11 @@ func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (
 		UserID: id,
 		Token:  tok,
 	}
+	session := server.Session{
+		Session:   sess,
+		CreatedAt: time.Now(),
+	}
 
-	session := server.Session{}
-	copier.Copy(&session, &sess)
-	session.CreatedAt = time.Now()
 	if err = s.sessions.Save(ctx, session); err != nil {
 		return sess, fmt.Errorf("save session: %w", err)
 	}

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jinzhu/copier"
 	"github.com/uptrace/bun"
 
 	server "github.com/charadev96/gonec/internal/server/domain"
@@ -36,8 +35,7 @@ func NewBunSessionRepository(ctx context.Context, db *bun.DB) (*BunSessionReposi
 
 func (r *BunSessionRepository) Save(ctx context.Context, sess server.Session) error {
 	tx := infra.ExtractTx(ctx, r.db)
-	s := &session{}
-	copier.Copy(s, &sess)
+	s := sessionToDB(sess)
 	_, err := tx.NewInsert().
 		Model(s).
 		Exec(ctx)
@@ -50,7 +48,6 @@ func (r *BunSessionRepository) Save(ctx context.Context, sess server.Session) er
 func (r *BunSessionRepository) GetByID(ctx context.Context, id uuid.UUID) (server.Session, error) {
 	tx := infra.ExtractTx(ctx, r.db)
 	s := &session{}
-	sess := server.Session{}
 	err := tx.NewSelect().
 		Model(s).
 		Where("id = ?", id).
@@ -59,10 +56,9 @@ func (r *BunSessionRepository) GetByID(ctx context.Context, id uuid.UUID) (serve
 		if errors.Is(err, sql.ErrNoRows) {
 			err = shared.ErrNotExist
 		}
-		return sess, err
+		return server.Session{}, err
 	}
-	copier.Copy(&sess, s)
-	return sess, nil
+	return sessionFromDB(*s), nil
 }
 
 func (r *BunSessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
@@ -83,4 +79,24 @@ type session struct {
 	UserID    uuid.UUID
 	Token     []byte `bun:",unique,nullzero"`
 	CreatedAt time.Time
+}
+
+func sessionFromDB(s session) server.Session {
+	return server.Session{
+		Session: shared.Session{
+			ID:     s.ID,
+			UserID: s.UserID,
+			Token:  s.Token,
+		},
+		CreatedAt: s.CreatedAt,
+	}
+}
+
+func sessionToDB(sess server.Session) *session {
+	return &session{
+		ID:        sess.ID,
+		UserID:    sess.UserID,
+		Token:     sess.Token,
+		CreatedAt: sess.CreatedAt,
+	}
 }

@@ -3,12 +3,10 @@ package handler
 import (
 	"context"
 
-	"github.com/jinzhu/copier"
-
 	userpb "github.com/charadev96/gonec/gen/user"
 	"github.com/charadev96/gonec/internal/client/service"
-	shared "github.com/charadev96/gonec/internal/shared/domain"
 	"github.com/charadev96/gonec/internal/shared/handler"
+	pb "github.com/charadev96/gonec/internal/shared/pb"
 )
 
 // TODO: Sanitize errors
@@ -19,10 +17,11 @@ type AuthServiceHandler struct {
 }
 
 func (h *AuthServiceHandler) Register(ctx context.Context, req *userpb.RegisterRequest) (*userpb.RegisterReply, error) {
-	t := shared.InviteTicket{}
-	copier.Copy(&t, &req.Ticket)
-
-	err := h.Service.Register(ctx, req.ConnectionId, t)
+	t, err := pb.InviteTicketFromPB(req.Ticket)
+	if err != nil {
+		return nil, handler.ErrArg(err)
+	}
+	err = h.Service.Register(ctx, req.ConnectionId, t)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
