@@ -110,7 +110,14 @@ func (s *AuthService) Login(ctx context.Context, id string) error {
 		return client.ErrLoggedIn
 	}
 
+	fail := true
 	err := s.connect(ctx, id)
+	defer func() {
+		if fail {
+			s.disconnect()
+		}
+	}()
+
 	if err != nil {
 		return fmt.Errorf("connect to server: %w", err)
 	}
@@ -141,6 +148,7 @@ func (s *AuthService) Login(ctx context.Context, id string) error {
 		return fmt.Errorf("request complete login: %w", err)
 	}
 
+	fail = false
 	s.session = &shared.Session{}
 	copier.Copy(s.session, repComplete.Auth)
 	s.status = AuthLoggedIn
