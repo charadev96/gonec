@@ -1,4 +1,4 @@
-package adminpb
+package admin
 
 import (
 	"context"
