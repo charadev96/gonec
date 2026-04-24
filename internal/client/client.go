@@ -14,32 +14,46 @@ import (
 	"github.com/charadev96/gonec/internal/client/service"
 )
 
-type Client struct {
+type Config struct {
 	Addr   string
 	Logger *zerolog.Logger
+}
 
-	AuthService *service.AuthService
+type Client struct {
+	cfg Config
+
+	auth *service.AuthService
+}
+
+func New(cfg Config, auth *service.AuthService) *Client {
+	l := zerolog.Nop()
+	s := &Client{
+		cfg:  cfg,
+		auth: auth,
+	}
+	if s.cfg.Logger == nil {
+		s.cfg.Logger = &l
+	}
+	return s
 }
 
 func (c *Client) ServeUser(ctx context.Context) error {
-	ln, err := net.Listen("tcp", c.Addr)
+	ln, err := net.Listen("tcp", c.cfg.Addr)
 	if err != nil {
 		return fmt.Errorf("init server: %w", err)
 	}
-	c.Logger.Info().
-		Str("address", c.Addr).
+	c.cfg.Logger.Info().
+		Str("address", c.cfg.Addr).
 		Msg("started client")
 
 	inst := grpc.NewServer()
-	userpb.RegisterAuthServiceServer(inst, &user.AuthServiceHandler{
-		Service: c.AuthService,
-	})
+	userpb.RegisterAuthServiceServer(inst, user.NewAuthHandler(c.auth))
 
 	reflection.Register(inst)
 
 	go func() {
 		<-ctx.Done()
-		c.Logger.Info().Msg("shutting down")
+		c.cfg.Logger.Info().Msg("shutting down")
 		inst.GracefulStop()
 	}()
 

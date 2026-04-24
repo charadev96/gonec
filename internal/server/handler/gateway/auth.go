@@ -14,40 +14,44 @@ import (
 
 // TODO: Sanitize errors
 
-type AuthServiceHandler struct {
+type AuthHandler struct {
 	gatewaypb.UnimplementedAuthServiceServer
-	Service *service.UserService
+	service *service.UserService
 }
 
-func (h *AuthServiceHandler) Register(ctx context.Context, req *gatewaypb.RegisterRequest) (*gatewaypb.RegisterReply, error) {
+func NewAuthHandler(s *service.UserService) *AuthHandler {
+	return &AuthHandler{service: s}
+}
+
+func (h *AuthHandler) Register(ctx context.Context, req *gatewaypb.RegisterRequest) (*gatewaypb.RegisterReply, error) {
 	id, err := uuid.Parse(req.UserId)
 	if err != nil {
 		return nil, handler.ErrArg(err)
 	}
-	if err := h.Service.RegisterUser(ctx, id, req.Token, req.PublicKey); err != nil {
+	if err := h.service.RegisterUser(ctx, id, req.Token, req.PublicKey); err != nil {
 		return nil, handler.ErrInternal(err)
 	}
 	return &gatewaypb.RegisterReply{}, nil
 }
 
-func (h *AuthServiceHandler) InitiateLogin(ctx context.Context, req *gatewaypb.InitiateLoginRequest) (*gatewaypb.InitiateLoginReply, error) {
+func (h *AuthHandler) InitiateLogin(ctx context.Context, req *gatewaypb.InitiateLoginRequest) (*gatewaypb.InitiateLoginReply, error) {
 	id, err := uuid.Parse(req.UserId)
 	if err != nil {
 		return nil, handler.ErrArg(err)
 	}
-	nonce, err := h.Service.CreateLoginNonce(ctx, id)
+	nonce, err := h.service.CreateLoginNonce(ctx, id)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
 	return &gatewaypb.InitiateLoginReply{Nonce: nonce}, nil
 }
 
-func (h *AuthServiceHandler) CompleteLogin(ctx context.Context, req *gatewaypb.CompleteLoginRequest) (*gatewaypb.CompleteLoginReply, error) {
+func (h *AuthHandler) CompleteLogin(ctx context.Context, req *gatewaypb.CompleteLoginRequest) (*gatewaypb.CompleteLoginReply, error) {
 	id, err := uuid.Parse(req.UserId)
 	if err != nil {
 		return nil, handler.ErrArg(err)
 	}
-	sess, err := h.Service.LoginUser(ctx, id, req.Signature)
+	sess, err := h.service.LoginUser(ctx, id, req.Signature)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
@@ -56,7 +60,7 @@ func (h *AuthServiceHandler) CompleteLogin(ctx context.Context, req *gatewaypb.C
 	}, nil
 }
 
-func (h *AuthServiceHandler) Logout(ctx context.Context, req *gatewaypb.LogoutRequest) (*gatewaypb.LogoutReply, error) {
+func (h *AuthHandler) Logout(ctx context.Context, req *gatewaypb.LogoutRequest) (*gatewaypb.LogoutReply, error) {
 	ids, err := handler.ParseUUIDs(req.Auth.Id, req.Auth.UserId)
 	if err != nil {
 		return nil, handler.ErrArg(err)
@@ -66,7 +70,7 @@ func (h *AuthServiceHandler) Logout(ctx context.Context, req *gatewaypb.LogoutRe
 		UserID: ids[1],
 		Token:  req.Auth.Token,
 	}
-	if err := h.Service.LogoutUser(ctx, sess); err != nil {
+	if err := h.service.LogoutUser(ctx, sess); err != nil {
 		return nil, handler.ErrInternal(err)
 	}
 	return &gatewaypb.LogoutReply{}, nil

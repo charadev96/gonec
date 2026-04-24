@@ -24,26 +24,43 @@ type AdminConfig struct {
 	Logger *zerolog.Logger
 }
 
-type MessagingConfig struct {
+type GatewayConfig struct {
 	Addr        string
 	Certificate tls.Certificate
 	Logger      *zerolog.Logger
 }
 
 type Server struct {
-	Admin     AdminConfig
-	Messaging MessagingConfig
+	admin   AdminConfig
+	gateway GatewayConfig
 
-	UserService *service.UserService
+	user *service.UserService
+}
+
+func New(adm AdminConfig, gtw GatewayConfig, user *service.UserService) *Server {
+	l := zerolog.Nop()
+	s := &Server{
+		admin:   adm,
+		gateway: gtw,
+
+		user: user,
+	}
+	if s.admin.Logger == nil {
+		s.admin.Logger = &l
+	}
+	if s.gateway.Logger == nil {
+		s.gateway.Logger = &l
+	}
+	return s
 }
 
 func (s *Server) ServeAdmin(ctx context.Context) error {
-	ln, err := net.Listen("tcp", s.Admin.Addr)
+	ln, err := net.Listen("tcp", s.admin.Addr)
 	if err != nil {
 		return fmt.Errorf("init server: %w", err)
 	}
-	s.Admin.Logger.Info().
-		Str("address", s.Admin.Addr).
+	s.admin.Logger.Info().
+		Str("address", s.admin.Addr).
 		Msg("started server")
 
 	opts := []logging.Option{
@@ -51,18 +68,18 @@ func (s *Server) ServeAdmin(ctx context.Context) error {
 	}
 	inst := grpc.NewServer(
 		grpc.UnaryInterceptor(
-			logging.UnaryServerInterceptor(log.NewInterceptor(*s.Admin.Logger), opts...),
+			logging.UnaryServerInterceptor(log.NewInterceptor(*s.admin.Logger), opts...),
 		),
 	)
-	adminpb.RegisterUserServiceServer(inst, &admin.UserServiceHandler{
-		Service: s.UserService,
-	})
+	adminpb.RegisterUserServiceServer(inst,
+		admin.NewUserHandler(s.user),
+	)
 
 	reflection.Register(inst)
 
 	go func() {
 		<-ctx.Done()
-		s.Admin.Logger.Info().Msg("shutting down")
+		s.admin.Logger.Info().Msg("shutting down")
 		inst.GracefulStop()
 	}()
 
@@ -71,16 +88,16 @@ func (s *Server) ServeAdmin(ctx context.Context) error {
 
 func (s *Server) ServeMessaging(ctx context.Context) error {
 	config := &tls.Config{
-		Certificates: []tls.Certificate{s.Messaging.Certificate},
+		Certificates: []tls.Certificate{s.gateway.Certificate},
 		NextProtos:   []string{"h2"},
 	}
-	ln, err := tls.Listen("tcp", s.Messaging.Addr, config)
+	ln, err := tls.Listen("tcp", s.gateway.Addr, config)
 	if err != nil {
 		return fmt.Errorf("init server: %w", err)
 	}
 	defer ln.Close()
-	s.Messaging.Logger.Info().
-		Str("address", s.Messaging.Addr).
+	s.gateway.Logger.Info().
+		Str("address", s.gateway.Addr).
 		Msg("started server")
 
 	opts := []logging.Option{
@@ -88,18 +105,18 @@ func (s *Server) ServeMessaging(ctx context.Context) error {
 	}
 	inst := grpc.NewServer(
 		grpc.UnaryInterceptor(
-			logging.UnaryServerInterceptor(log.NewInterceptor(*s.Admin.Logger), opts...),
+			logging.UnaryServerInterceptor(log.NewInterceptor(*s.admin.Logger), opts...),
 		),
 	)
-	gatewaypb.RegisterAuthServiceServer(inst, &gateway.AuthServiceHandler{
-		Service: s.UserService,
-	})
+	gatewaypb.RegisterAuthServiceServer(inst,
+		gateway.NewAuthHandler(s.user),
+	)
 
 	reflection.Register(inst)
 
 	go func() {
 		<-ctx.Done()
-		s.Messaging.Logger.Info().Msg("shutting down")
+		s.gateway.Logger.Info().Msg("shutting down")
 		inst.GracefulStop()
 	}()
 

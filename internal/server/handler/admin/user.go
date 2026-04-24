@@ -14,20 +14,24 @@ import (
 
 // TODO: Sanitize errors
 
-type UserServiceHandler struct {
+type UserHandler struct {
 	adminpb.UnimplementedUserServiceServer
-	Service *service.UserService
+	service *service.UserService
 }
 
-func (h *UserServiceHandler) CreateUser(ctx context.Context, req *adminpb.CreateUserRequest) (*adminpb.CreateUserReply, error) {
-	id, err := h.Service.Users().Create(ctx)
+func NewUserHandler(s *service.UserService) *UserHandler {
+	return &UserHandler{service: s}
+}
+
+func (h *UserHandler) CreateUser(ctx context.Context, req *adminpb.CreateUserRequest) (*adminpb.CreateUserReply, error) {
+	id, err := h.service.Users().Create(ctx)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
 	return &adminpb.CreateUserReply{UserId: id.String()}, nil
 }
 
-func (h *UserServiceHandler) CreateInvite(ctx context.Context, req *adminpb.CreateInviteRequest) (*adminpb.CreateInviteReply, error) {
+func (h *UserHandler) CreateInvite(ctx context.Context, req *adminpb.CreateInviteRequest) (*adminpb.CreateInviteReply, error) {
 	id, err := uuid.Parse(req.UserId)
 	if err != nil {
 		return nil, handler.ErrArg(err)
@@ -36,58 +40,58 @@ func (h *UserServiceHandler) CreateInvite(ctx context.Context, req *adminpb.Crea
 		NotBefore: req.NotBefore.AsTime(),
 		NotAfter:  req.NotAfter.AsTime(),
 	}
-	inv, err := h.Service.CreateInvite(ctx, id, opts)
+	inv, err := h.service.CreateInvite(ctx, id, opts)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
 	return &adminpb.CreateInviteReply{Invite: pb.InviteCredentialToPB(inv)}, nil
 }
 
-func (h *UserServiceHandler) ExportInvite(ctx context.Context, req *adminpb.ExportInviteRequest) (*adminpb.ExportInviteReply, error) {
+func (h *UserHandler) ExportInvite(ctx context.Context, req *adminpb.ExportInviteRequest) (*adminpb.ExportInviteReply, error) {
 	id, err := uuid.Parse(req.UserId)
 	if err != nil {
 		return nil, handler.ErrArg(err)
 	}
-	tck, err := h.Service.ExportInvite(ctx, id)
+	tck, err := h.service.ExportInvite(ctx, id)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
 	return &adminpb.ExportInviteReply{Ticket: pb.InviteTicketToPB(tck)}, nil
 }
 
-func (h *UserServiceHandler) GetUserByID(ctx context.Context, req *adminpb.GetByIDRequest) (*adminpb.GetUserReply, error) {
+func (h *UserHandler) GetUserByID(ctx context.Context, req *adminpb.GetByIDRequest) (*adminpb.GetUserReply, error) {
 	id, err := uuid.Parse(req.Id)
 	if err != nil {
 		return nil, handler.ErrArg(err)
 	}
-	user, err := h.Service.Users().GetByID(ctx, id)
+	user, err := h.service.Users().GetByID(ctx, id)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
 	return &adminpb.GetUserReply{User: pb.UserToPB(user)}, nil
 }
 
-func (h *UserServiceHandler) GetUserByName(ctx context.Context, req *adminpb.GetByNameRequest) (*adminpb.GetUserReply, error) {
-	user, err := h.Service.Users().GetByName(ctx, req.Name)
+func (h *UserHandler) GetUserByName(ctx context.Context, req *adminpb.GetByNameRequest) (*adminpb.GetUserReply, error) {
+	user, err := h.service.Users().GetByName(ctx, req.Name)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
 	return &adminpb.GetUserReply{User: pb.UserToPB(user)}, nil
 }
 
-func (h *UserServiceHandler) GetInviteByUserID(ctx context.Context, req *adminpb.GetByIDRequest) (*adminpb.GetInviteReply, error) {
+func (h *UserHandler) GetInviteByUserID(ctx context.Context, req *adminpb.GetByIDRequest) (*adminpb.GetInviteReply, error) {
 	id, err := uuid.Parse(req.Id)
 	if err != nil {
 		return nil, handler.ErrArg(err)
 	}
-	invite, err := h.Service.Invites().GetByUserID(ctx, id)
+	invite, err := h.service.Invites().GetByUserID(ctx, id)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
 	return &adminpb.GetInviteReply{Invite: pb.InviteCredentialToPB(invite)}, nil
 }
 
-func (h *UserServiceHandler) ListUsers(ctx context.Context, req *adminpb.ListUsersRequest) (*adminpb.ListUsersReply, error) {
+func (h *UserHandler) ListUsers(ctx context.Context, req *adminpb.ListUsersRequest) (*adminpb.ListUsersReply, error) {
 	var cursor uuid.UUID
 	if req.Cursor != "" {
 		var err error
@@ -101,7 +105,7 @@ func (h *UserServiceHandler) ListUsers(ctx context.Context, req *adminpb.ListUse
 		Limit:  int(req.Limit),
 		Cursor: cursor,
 	}
-	list, err := h.Service.Users().List(ctx, query)
+	list, err := h.service.Users().List(ctx, query)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
@@ -118,24 +122,24 @@ func (h *UserServiceHandler) ListUsers(ctx context.Context, req *adminpb.ListUse
 
 }
 
-func (h *UserServiceHandler) DeleteUser(ctx context.Context, req *adminpb.DeleteRequest) (*adminpb.DeleteReply, error) {
+func (h *UserHandler) DeleteUser(ctx context.Context, req *adminpb.DeleteRequest) (*adminpb.DeleteReply, error) {
 	id, err := uuid.Parse(req.Id)
 	if err != nil {
 		return nil, handler.ErrArg(err)
 	}
-	err = h.Service.DeleteUser(ctx, id)
+	err = h.service.DeleteUser(ctx, id)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
 	return &adminpb.DeleteReply{}, nil
 }
 
-func (h *UserServiceHandler) DeleteInvite(ctx context.Context, req *adminpb.DeleteRequest) (*adminpb.DeleteReply, error) {
+func (h *UserHandler) DeleteInvite(ctx context.Context, req *adminpb.DeleteRequest) (*adminpb.DeleteReply, error) {
 	id, err := uuid.Parse(req.Id)
 	if err != nil {
 		return nil, handler.ErrArg(err)
 	}
-	err = h.Service.Invites().Delete(ctx, id)
+	err = h.service.Invites().Delete(ctx, id)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}

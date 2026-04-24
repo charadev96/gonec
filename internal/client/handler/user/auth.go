@@ -11,33 +11,37 @@ import (
 
 // TODO: Sanitize errors
 
-type AuthServiceHandler struct {
+type AuthHandler struct {
 	userpb.UnimplementedAuthServiceServer
-	Service *service.AuthService
+	service *service.AuthService
 }
 
-func (h *AuthServiceHandler) Register(ctx context.Context, req *userpb.RegisterRequest) (*userpb.RegisterReply, error) {
+func NewAuthHandler(s *service.AuthService) *AuthHandler {
+	return &AuthHandler{service: s}
+}
+
+func (h *AuthHandler) Register(ctx context.Context, req *userpb.RegisterRequest) (*userpb.RegisterReply, error) {
 	t, err := pb.InviteTicketFromPB(req.Ticket)
 	if err != nil {
 		return nil, handler.ErrArg(err)
 	}
-	err = h.Service.Register(ctx, req.ConnectionId, t)
+	err = h.service.Register(ctx, req.ConnectionId, t)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
 	return &userpb.RegisterReply{}, nil
 }
 
-func (h *AuthServiceHandler) Login(ctx context.Context, req *userpb.LoginRequest) (*userpb.LoginReply, error) {
-	err := h.Service.Login(ctx, req.ConnectionId)
+func (h *AuthHandler) Login(ctx context.Context, req *userpb.LoginRequest) (*userpb.LoginReply, error) {
+	err := h.service.Login(ctx, req.ConnectionId)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
 	return &userpb.LoginReply{}, nil
 }
 
-func (h *AuthServiceHandler) Logout(ctx context.Context, req *userpb.LogoutRequest) (*userpb.LogoutReply, error) {
-	err := h.Service.Logout(ctx)
+func (h *AuthHandler) Logout(ctx context.Context, req *userpb.LogoutRequest) (*userpb.LogoutReply, error) {
+	err := h.service.Logout(ctx)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
