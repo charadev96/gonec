@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package gonec.shared.v1;
+
+option go_package = "github.com/charadev96/gonec/gen/shared";
+
+message Message {
+  string sender = 1;
+  string content = 2;
+}

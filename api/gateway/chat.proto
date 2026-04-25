@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package gonec.gateway.v1;
+
+import "shared/auth.proto";
+import "shared/chat.proto";
+
+option go_package = "github.com/charadev96/gonec/gen/gateway";
+
+service ChatService {
+  rpc Send(SendRequest) returns (SendReply);
+  rpc Listen(ListenRequest) returns (stream shared.v1.Message);
+}
+
+message SendRequest {
+  shared.v1.Session auth = 1;
+  string recipient = 2;
+  string content = 3;
+}
+
+message SendReply {}
+
+message ListenRequest {
+  shared.v1.Session auth = 1;
+}

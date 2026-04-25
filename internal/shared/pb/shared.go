@@ -92,3 +92,21 @@ func InviteTicketToPB(t shared.InviteTicket) *sharedpb.InviteTicket {
 		Credential: InviteCredentialToPB(t.Credential),
 	}
 }
+
+func MessageFromPB(pb *sharedpb.Message) (shared.Message, error) {
+	sender, err := UUIDFromPB(pb.Sender)
+	if err != nil {
+		return shared.Message{}, err
+	}
+	return shared.Message{
+		Sender:  sender,
+		Content: pb.Content,
+	}, nil
+}
+
+func MessageToPB(m shared.Message) *sharedpb.Message {
+	return &sharedpb.Message{
+		Sender:  UUIDToPB(m.Sender),
+		Content: m.Content,
+	}
+}

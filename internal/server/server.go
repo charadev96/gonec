@@ -5,10 +5,12 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 
 	adminpb "github.com/charadev96/gonec/gen/admin"
@@ -35,15 +37,17 @@ type Server struct {
 	gateway GatewayConfig
 
 	user *service.UserService
+	chat *service.ChatService
 }
 
-func New(adm AdminConfig, gtw GatewayConfig, user *service.UserService) *Server {
+func New(adm AdminConfig, gtw GatewayConfig, user *service.UserService, chat *service.ChatService) *Server {
 	l := zerolog.Nop()
 	s := &Server{
 		admin:   adm,
 		gateway: gtw,
 
 		user: user,
+		chat: chat,
 	}
 	if s.admin.Logger == nil {
 		s.admin.Logger = &l
@@ -70,10 +74,12 @@ func (s *Server) ServeAdmin(ctx context.Context) error {
 		grpc.UnaryInterceptor(
 			logging.UnaryServerInterceptor(log.NewInterceptor(*s.admin.Logger), opts...),
 		),
+		grpc.KeepaliveParams(keepalive.ServerParameters{
+			Time:    30 * time.Second,
+			Timeout: 10 * time.Second,
+		}),
 	)
-	adminpb.RegisterUserServiceServer(inst,
-		admin.NewUserHandler(s.user),
-	)
+	adminpb.RegisterUserServiceServer(inst, admin.NewUserHandler(s.user))
 
 	reflection.Register(inst)
 
@@ -108,9 +114,8 @@ func (s *Server) ServeMessaging(ctx context.Context) error {
 			logging.UnaryServerInterceptor(log.NewInterceptor(*s.admin.Logger), opts...),
 		),
 	)
-	gatewaypb.RegisterAuthServiceServer(inst,
-		gateway.NewAuthHandler(s.user),
-	)
+	gatewaypb.RegisterAuthServiceServer(inst, gateway.NewAuthHandler(s.user))
+	gatewaypb.RegisterChatServiceServer(inst, gateway.NewChatHandler(ctx, s.chat))
 
 	reflection.Register(inst)
 

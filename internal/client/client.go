@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 
 	userpb "github.com/charadev96/gonec/gen/user"
@@ -23,13 +25,16 @@ type Client struct {
 	cfg Config
 
 	auth *service.AuthService
+	chat *service.ChatService
 }
 
-func New(cfg Config, auth *service.AuthService) *Client {
+func New(cfg Config, auth *service.AuthService, chat *service.ChatService) *Client {
 	l := zerolog.Nop()
 	s := &Client{
-		cfg:  cfg,
+		cfg: cfg,
+
 		auth: auth,
+		chat: chat,
 	}
 	if s.cfg.Logger == nil {
 		s.cfg.Logger = &l
@@ -46,8 +51,14 @@ func (c *Client) ServeUser(ctx context.Context) error {
 		Str("address", c.cfg.Addr).
 		Msg("started client")
 
-	inst := grpc.NewServer()
+	inst := grpc.NewServer(
+		grpc.KeepaliveParams(keepalive.ServerParameters{
+			Time:    30 * time.Second,
+			Timeout: 10 * time.Second,
+		}),
+	)
 	userpb.RegisterAuthServiceServer(inst, user.NewAuthHandler(c.auth))
+	userpb.RegisterChatServiceServer(inst, user.NewChatHandler(ctx, c.chat))
 
 	reflection.Register(inst)
 
