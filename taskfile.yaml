@@ -1,6 +1,10 @@
 version: '3'
 
 tasks:
+  build:
+    desc: Build all go packages
+    cmds: [go build ./...]
+
   gen:protobuf:
     desc: Generate protobuf go stubs
     sources:
