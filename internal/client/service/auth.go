@@ -148,6 +148,7 @@ func (s *AuthService) Login(ctx context.Context, id string) error {
 	}
 
 	fail = false
+	s.session = &shared.Session{}
 	*s.session, err = pb.SessionFromPB(repComplete.Auth)
 	if err != nil {
 		return fmt.Errorf("parse session: %w", err)
