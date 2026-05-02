@@ -15,9 +15,12 @@ import (
 
 	adminpb "github.com/charadev96/gonec/gen/admin"
 	gatewaypb "github.com/charadev96/gonec/gen/gateway"
+	"github.com/charadev96/gonec/internal/server/cert"
+	"github.com/charadev96/gonec/internal/server/domain"
 	admin "github.com/charadev96/gonec/internal/server/handler/admin"
 	gateway "github.com/charadev96/gonec/internal/server/handler/gateway"
 	"github.com/charadev96/gonec/internal/server/service"
+	shared "github.com/charadev96/gonec/internal/shared/domain"
 	"github.com/charadev96/gonec/internal/shared/log"
 )
 
@@ -27,24 +30,45 @@ type AdminConfig struct {
 }
 
 type GatewayConfig struct {
-	Addr        string
-	Certificate tls.Certificate
-	Logger      *zerolog.Logger
+	Addr         string
+	CertProvider *cert.Provider
+	Logger       *zerolog.Logger
 }
 
 type Server struct {
 	admin   AdminConfig
 	gateway GatewayConfig
+	db      domain.DB
 
 	user *service.UserService
 	chat *service.ChatService
 }
 
-func New(adm AdminConfig, gtw GatewayConfig, user *service.UserService, chat *service.ChatService) *Server {
+func New(adm AdminConfig, gtw GatewayConfig, db domain.DB) *Server {
 	l := zerolog.Nop()
+
+	var (
+		user = service.NewUserService(
+			shared.ServerIdentity{
+				IPAddress: gtw.Addr,
+				PublicKey: gtw.CertProvider.GetPublicKey(),
+			},
+			db.Users,
+			db.Invites,
+			db.Nonces,
+			db.Sessions,
+			db.TxRunner,
+		)
+		chat = service.NewChatService(
+			db.Users,
+			user,
+		)
+	)
+
 	s := &Server{
 		admin:   adm,
 		gateway: gtw,
+		db:      db,
 
 		user: user,
 		chat: chat,
@@ -70,7 +94,7 @@ func (s *Server) ServeAdmin(ctx context.Context) error {
 	opts := []logging.Option{
 		logging.WithLogOnEvents(logging.StartCall, logging.FinishCall),
 	}
-	inst := grpc.NewServer(
+	srv := grpc.NewServer(
 		grpc.UnaryInterceptor(
 			logging.UnaryServerInterceptor(log.NewInterceptor(*s.admin.Logger), opts...),
 		),
@@ -79,23 +103,23 @@ func (s *Server) ServeAdmin(ctx context.Context) error {
 			Timeout: 10 * time.Second,
 		}),
 	)
-	adminpb.RegisterUserServiceServer(inst, admin.NewUserHandler(s.user))
+	adminpb.RegisterUserServiceServer(srv, admin.NewUserHandler(s.user))
 
-	reflection.Register(inst)
+	reflection.Register(srv)
 
 	go func() {
 		<-ctx.Done()
 		s.admin.Logger.Info().Msg("shutting down")
-		inst.GracefulStop()
+		srv.GracefulStop()
 	}()
 
-	return inst.Serve(ln)
+	return srv.Serve(ln)
 }
 
-func (s *Server) ServeMessaging(ctx context.Context) error {
+func (s *Server) ServeGateway(ctx context.Context) error {
 	config := &tls.Config{
-		Certificates: []tls.Certificate{s.gateway.Certificate},
-		NextProtos:   []string{"h2"},
+		GetCertificate: s.gateway.CertProvider.GetCert,
+		NextProtos:     []string{"h2"},
 	}
 	ln, err := tls.Listen("tcp", s.gateway.Addr, config)
 	if err != nil {
@@ -109,21 +133,21 @@ func (s *Server) ServeMessaging(ctx context.Context) error {
 	opts := []logging.Option{
 		logging.WithLogOnEvents(logging.StartCall, logging.FinishCall),
 	}
-	inst := grpc.NewServer(
+	srv := grpc.NewServer(
 		grpc.UnaryInterceptor(
 			logging.UnaryServerInterceptor(log.NewInterceptor(*s.admin.Logger), opts...),
 		),
 	)
-	gatewaypb.RegisterAuthServiceServer(inst, gateway.NewAuthHandler(s.user))
-	gatewaypb.RegisterChatServiceServer(inst, gateway.NewChatHandler(ctx, s.chat))
+	gatewaypb.RegisterAuthServiceServer(srv, gateway.NewAuthHandler(s.user))
+	gatewaypb.RegisterChatServiceServer(srv, gateway.NewChatHandler(ctx, s.chat))
 
-	reflection.Register(inst)
+	reflection.Register(srv)
 
 	go func() {
 		<-ctx.Done()
 		s.gateway.Logger.Info().Msg("shutting down")
-		inst.GracefulStop()
+		srv.GracefulStop()
 	}()
 
-	return inst.Serve(ln)
+	return srv.Serve(ln)
 }
