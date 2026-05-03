@@ -14,12 +14,12 @@ import (
 	"github.com/charadev96/gonec/internal/shared/infra"
 )
 
-type BunSessionRepository struct {
+type BunSession struct {
 	db *bun.DB
 }
 
-func NewBunSessionRepository(ctx context.Context, db *bun.DB) (*BunSessionRepository, error) {
-	r := &BunSessionRepository{
+func NewBunSession(ctx context.Context, db *bun.DB) (*BunSession, error) {
+	r := &BunSession{
 		db: db,
 	}
 	tx := infra.ExtractTx(ctx, r.db)
@@ -33,9 +33,9 @@ func NewBunSessionRepository(ctx context.Context, db *bun.DB) (*BunSessionReposi
 	return r, nil
 }
 
-func (r *BunSessionRepository) Save(ctx context.Context, sess server.Session) error {
+func (r *BunSession) Save(ctx context.Context, ses server.Session) error {
 	tx := infra.ExtractTx(ctx, r.db)
-	s := sessionToDB(sess)
+	s := sessionToDB(ses)
 	_, err := tx.NewInsert().
 		Model(s).
 		Exec(ctx)
@@ -45,7 +45,7 @@ func (r *BunSessionRepository) Save(ctx context.Context, sess server.Session) er
 	return nil
 }
 
-func (r *BunSessionRepository) GetByID(ctx context.Context, id uuid.UUID) (server.Session, error) {
+func (r *BunSession) GetByID(ctx context.Context, id uuid.UUID) (server.Session, error) {
 	tx := infra.ExtractTx(ctx, r.db)
 	s := &session{}
 	err := tx.NewSelect().
@@ -61,7 +61,7 @@ func (r *BunSessionRepository) GetByID(ctx context.Context, id uuid.UUID) (serve
 	return sessionFromDB(*s), nil
 }
 
-func (r *BunSessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *BunSession) Delete(ctx context.Context, id uuid.UUID) error {
 	tx := infra.ExtractTx(ctx, r.db)
 	s := &session{ID: id}
 	_, err := tx.NewDelete().
@@ -92,11 +92,11 @@ func sessionFromDB(s session) server.Session {
 	}
 }
 
-func sessionToDB(sess server.Session) *session {
+func sessionToDB(ses server.Session) *session {
 	return &session{
-		ID:        sess.ID,
-		UserID:    sess.UserID,
-		Token:     sess.Token,
-		CreatedAt: sess.CreatedAt,
+		ID:        ses.ID,
+		UserID:    ses.UserID,
+		Token:     ses.Token,
+		CreatedAt: ses.CreatedAt,
 	}
 }

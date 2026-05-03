@@ -14,6 +14,6 @@ type LoginNonce struct {
 }
 
 type LoginNonceRepository interface {
-	Save(ctx context.Context, nonce LoginNonce) error
+	Save(ctx context.Context, n LoginNonce) error
 	Consume(ctx context.Context, id uuid.UUID) (LoginNonce, error)
 }

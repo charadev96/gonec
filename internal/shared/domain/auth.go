@@ -12,7 +12,7 @@ type ServerIdentity struct {
 	PublicKey ed25519.PublicKey
 }
 
-type InviteCredential struct {
+type InviteClaims struct {
 	UserID    uuid.UUID
 	Token     []byte
 	NotBefore time.Time
@@ -20,8 +20,8 @@ type InviteCredential struct {
 }
 
 type InviteTicket struct {
-	Server     ServerIdentity
-	Credential InviteCredential
+	Server ServerIdentity
+	Claims InviteClaims
 }
 
 type Session struct {

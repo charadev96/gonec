@@ -41,22 +41,22 @@ func ProvideBunDB(ctx context.Context, path string) (server.DB, error) {
 
 	db := bun.NewDB(sqldb, sqlitedialect.New())
 
-	invites, err := NewBunInviteCredentialRepository(ctx, db)
+	claims, err := NewBunInviteClaims(ctx, db)
 	if err != nil {
-		return server.DB{}, fmt.Errorf("init invites: %w", err)
+		return server.DB{}, fmt.Errorf("init claims: %w", err)
 	}
 
-	nonces, err := NewBunLoginNonceRepository(ctx, db)
+	nonces, err := NewBunLoginNonce(ctx, db)
 	if err != nil {
 		return server.DB{}, fmt.Errorf("init nonces: %w", err)
 	}
 
-	sessions, err := NewBunSessionRepository(ctx, db)
+	sessions, err := NewBunSession(ctx, db)
 	if err != nil {
 		return server.DB{}, fmt.Errorf("init sessions: %w", err)
 	}
 
-	users, err := NewBunUserRepository(ctx, db)
+	users, err := NewBunUser(ctx, db)
 	if err != nil {
 		return server.DB{}, fmt.Errorf("init users: %w", err)
 	}
@@ -64,7 +64,7 @@ func ProvideBunDB(ctx context.Context, path string) (server.DB, error) {
 	txr := infra.NewBunTransactionRunner(db)
 
 	return server.DB{
-		Invites:  invites,
+		Claims:   claims,
 		Nonces:   nonces,
 		Sessions: sessions,
 		Users:    users,

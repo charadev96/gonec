@@ -46,7 +46,7 @@ func ServerIdentityToPB(s shared.ServerIdentity) *sharedpb.ServerIdentity {
 	}
 }
 
-func InviteCredentialFromPB(pb *sharedpb.InviteCredential) (shared.InviteCredential, error) {
+func InviteClaimsFromPB(pb *sharedpb.InviteClaims) (shared.InviteClaims, error) {
 	var notBefore, notAfter time.Time
 	if pb.NotBefore != nil {
 		notBefore = pb.NotBefore.AsTime()
@@ -56,9 +56,9 @@ func InviteCredentialFromPB(pb *sharedpb.InviteCredential) (shared.InviteCredent
 	}
 	userID, err := UUIDFromPB(pb.UserId)
 	if err != nil {
-		return shared.InviteCredential{}, err
+		return shared.InviteClaims{}, err
 	}
-	return shared.InviteCredential{
+	return shared.InviteClaims{
 		UserID:    userID,
 		Token:     pb.Token,
 		NotBefore: notBefore,
@@ -66,8 +66,8 @@ func InviteCredentialFromPB(pb *sharedpb.InviteCredential) (shared.InviteCredent
 	}, nil
 }
 
-func InviteCredentialToPB(i shared.InviteCredential) *sharedpb.InviteCredential {
-	return &sharedpb.InviteCredential{
+func InviteClaimsToPB(i shared.InviteClaims) *sharedpb.InviteClaims {
+	return &sharedpb.InviteClaims{
 		UserId:    UUIDToPB(i.UserID),
 		Token:     i.Token,
 		NotBefore: timestamppb.New(i.NotBefore),
@@ -76,20 +76,20 @@ func InviteCredentialToPB(i shared.InviteCredential) *sharedpb.InviteCredential 
 }
 
 func InviteTicketFromPB(pb *sharedpb.InviteTicket) (shared.InviteTicket, error) {
-	cred, err := InviteCredentialFromPB(pb.Credential)
+	cl, err := InviteClaimsFromPB(pb.Claims)
 	if err != nil {
 		return shared.InviteTicket{}, err
 	}
 	return shared.InviteTicket{
-		Server:     ServerIdentityFromPB(pb.Server),
-		Credential: cred,
+		Server: ServerIdentityFromPB(pb.Server),
+		Claims: cl,
 	}, nil
 }
 
 func InviteTicketToPB(t shared.InviteTicket) *sharedpb.InviteTicket {
 	return &sharedpb.InviteTicket{
-		Server:     ServerIdentityToPB(t.Server),
-		Credential: InviteCredentialToPB(t.Credential),
+		Server: ServerIdentityToPB(t.Server),
+		Claims: InviteClaimsToPB(t.Claims),
 	}
 }
 

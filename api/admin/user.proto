@@ -9,18 +9,18 @@ option go_package = "github.com/charadev96/gonec/gen/admin";
 
 service UserService {
   rpc CreateUser(CreateUserRequest) returns (CreateUserReply);
-  rpc CreateInvite(CreateInviteRequest) returns (CreateInviteReply);
+  rpc CreateClaims(CreateClaimsRequest) returns (CreateClaimsReply);
 
-  rpc ExportInvite(ExportInviteRequest) returns (ExportInviteReply);
+  rpc ExportClaims(ExportClaimsRequest) returns (ExportClaimsReply);
 
   rpc GetUserByID(GetByIDRequest) returns (GetUserReply);
   rpc GetUserByName(GetByNameRequest) returns (GetUserReply);
-  rpc GetInviteByUserID(GetByIDRequest) returns (GetInviteReply);
+  rpc GetClaimsByUserID(GetByIDRequest) returns (GetClaimsReply);
 
   rpc ListUsers(ListUsersRequest) returns (ListUsersReply);
 
   rpc DeleteUser(DeleteRequest) returns (DeleteReply);
-  rpc DeleteInvite(DeleteRequest) returns (DeleteReply);
+  rpc DeleteClaims(DeleteRequest) returns (DeleteReply);
 }
 
 enum UserState {
@@ -42,21 +42,21 @@ message CreateUserReply {
   string user_id = 1;
 }
 
-message CreateInviteRequest {
+message CreateClaimsRequest {
   string user_id = 1;
   google.protobuf.Timestamp not_before = 2;
   google.protobuf.Timestamp not_after = 3;
 }
 
-message CreateInviteReply {
-  shared.v1.InviteCredential invite = 1;
+message CreateClaimsReply {
+  shared.v1.InviteClaims claims = 1;
 }
 
-message ExportInviteRequest {
+message ExportClaimsRequest {
   string user_id = 1;
 }
 
-message ExportInviteReply {
+message ExportClaimsReply {
   shared.v1.InviteTicket ticket = 1;
 }
 
@@ -72,8 +72,8 @@ message GetUserReply {
   User user = 1;
 }
 
-message GetInviteReply {
-  shared.v1.InviteCredential invite = 1;
+message GetClaimsReply {
+  shared.v1.InviteClaims claims = 1;
 }
 
 message ListUsersRequest {

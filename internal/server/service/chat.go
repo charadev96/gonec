@@ -43,22 +43,22 @@ func (b *MessageBroker) Get(ctx context.Context, id uuid.UUID) (chan shared.Mess
 	}
 }
 
-type ChatService struct {
+type Chat struct {
 	users server.UserRepository
-	user  *UserService
+	user  *User
 
 	msgs *MessageBroker
 }
 
-func NewChatService(r server.UserRepository, s *UserService) *ChatService {
-	return &ChatService{
+func NewChat(r server.UserRepository, s *User) *Chat {
+	return &Chat{
 		users: r,
 		user:  s,
 		msgs:  NewMessageBroker(),
 	}
 }
 
-func (s *ChatService) Send(ctx context.Context, auth shared.Session, to uuid.UUID, str string) error {
+func (s *Chat) Send(ctx context.Context, auth shared.Session, to uuid.UUID, str string) error {
 	err := s.user.VerifySession(ctx, auth)
 	if err != nil {
 		return fmt.Errorf("verify session: %w", err)
@@ -85,7 +85,7 @@ func (s *ChatService) Send(ctx context.Context, auth shared.Session, to uuid.UUI
 	}
 }
 
-func (s *ChatService) Listen(ctx context.Context, auth shared.Session) (<-chan shared.Packet[shared.Message], error) {
+func (s *Chat) Listen(ctx context.Context, auth shared.Session) (<-chan shared.Packet[shared.Message], error) {
 	err := s.user.VerifySession(ctx, auth)
 
 	if err != nil {

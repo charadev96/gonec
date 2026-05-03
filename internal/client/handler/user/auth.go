@@ -13,10 +13,10 @@ import (
 
 type AuthHandler struct {
 	userpb.UnimplementedAuthServiceServer
-	service *service.AuthService
+	service *service.Auth
 }
 
-func NewAuthHandler(s *service.AuthService) *AuthHandler {
+func NewAuthHandler(s *service.Auth) *AuthHandler {
 	return &AuthHandler{service: s}
 }
 

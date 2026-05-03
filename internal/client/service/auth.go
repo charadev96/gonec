@@ -20,35 +20,35 @@ import (
 	pb "github.com/charadev96/gonec/internal/shared/pb"
 )
 
-type AuthServiceStatus int
+type AuthStatus int
 
 const (
-	AuthDisconnected AuthServiceStatus = iota
+	AuthDisconnected AuthStatus = iota
 	AuthConnected
 	AuthLoggedIn
 )
 
-type AuthService struct {
+type Auth struct {
 	pins client.ConnPinRepository
 
 	pin     client.ConnPin
 	conn    *grpc.ClientConn
 	session *shared.Session
-	status  AuthServiceStatus
+	status  AuthStatus
 
 	rand io.Reader
 }
 
-type AuthServiceOption func(*AuthService)
+type AuthOption func(*Auth)
 
-func AuthWithRand(r io.Reader) AuthServiceOption {
-	return func(s *AuthService) {
+func AuthWithRand(r io.Reader) AuthOption {
+	return func(s *Auth) {
 		s.rand = r
 	}
 }
 
-func NewAuthService(p client.ConnPinRepository, opts ...AuthServiceOption) *AuthService {
-	s := &AuthService{
+func NewAuth(p client.ConnPinRepository, opts ...AuthOption) *Auth {
+	s := &Auth{
 		pins: p,
 		rand: rand.Reader,
 	}
@@ -58,7 +58,7 @@ func NewAuthService(p client.ConnPinRepository, opts ...AuthServiceOption) *Auth
 	return s
 }
 
-func (s *AuthService) Register(ctx context.Context, id string, t shared.InviteTicket) error {
+func (s *Auth) Register(ctx context.Context, id string, t shared.InviteTicket) error {
 	if s.status == AuthLoggedIn {
 		return client.ErrLoggedIn
 	}
@@ -72,7 +72,7 @@ func (s *AuthService) Register(ctx context.Context, id string, t shared.InviteTi
 		ID:     id,
 		Server: t.Server,
 		User: client.UserPrivateIdentity{
-			ID:         t.Credential.UserID,
+			ID:         t.Claims.UserID,
 			PrivateKey: prv,
 		},
 	}
@@ -93,8 +93,8 @@ func (s *AuthService) Register(ctx context.Context, id string, t shared.InviteTi
 	}
 
 	_, err = cl.Register(ctx, &gatewaypb.RegisterRequest{
-		UserId:    t.Credential.UserID.String(),
-		Token:     t.Credential.Token,
+		UserId:    t.Claims.UserID.String(),
+		Token:     t.Claims.Token,
 		PublicKey: pub,
 	})
 	if err != nil {
@@ -104,7 +104,7 @@ func (s *AuthService) Register(ctx context.Context, id string, t shared.InviteTi
 	return nil
 }
 
-func (s *AuthService) Login(ctx context.Context, id string) error {
+func (s *Auth) Login(ctx context.Context, id string) error {
 	if s.status == AuthLoggedIn {
 		return client.ErrLoggedIn
 	}
@@ -158,7 +158,7 @@ func (s *AuthService) Login(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *AuthService) Logout(ctx context.Context) error {
+func (s *Auth) Logout(ctx context.Context) error {
 	cl, err := BindClient(s, gatewaypb.NewAuthServiceClient)
 	if err != nil {
 		return err
@@ -182,7 +182,7 @@ func (s *AuthService) Logout(ctx context.Context) error {
 	return nil
 }
 
-func BindClient[T any](s *AuthService, c func(grpc.ClientConnInterface) T) (T, error) {
+func BindClient[T any](s *Auth, c func(grpc.ClientConnInterface) T) (T, error) {
 	cl := c(s.conn)
 	if s.status == AuthDisconnected {
 		return cl, client.ErrNoConn
@@ -190,7 +190,7 @@ func BindClient[T any](s *AuthService, c func(grpc.ClientConnInterface) T) (T, e
 	return cl, nil
 }
 
-func (s *AuthService) Session() (shared.Session, error) {
+func (s *Auth) Session() (shared.Session, error) {
 	if s.status == AuthDisconnected {
 		return shared.Session{}, client.ErrNoConn
 	}
@@ -203,18 +203,18 @@ func (s *AuthService) Session() (shared.Session, error) {
 	return *s.session, nil
 }
 
-func (s *AuthService) Pin() (client.ConnPin, error) {
+func (s *Auth) Pin() (client.ConnPin, error) {
 	if s.status == AuthDisconnected {
 		return client.ConnPin{}, client.ErrNoConn
 	}
 	return s.pin, nil
 }
 
-func (s *AuthService) Status() AuthServiceStatus {
+func (s *Auth) Status() AuthStatus {
 	return s.status
 }
 
-func (s *AuthService) connect(ctx context.Context, id string) error {
+func (s *Auth) connect(ctx context.Context, id string) error {
 	if s.status != AuthDisconnected {
 		return client.ErrConn
 	}
@@ -245,12 +245,12 @@ func (s *AuthService) connect(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *AuthService) disconnect() {
+func (s *Auth) disconnect() {
 	s.status = AuthDisconnected
 	s.conn.Close()
 }
 
-func (s *AuthService) verifyServerCertificate(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
+func (s *Auth) verifyServerCertificate(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
 	pin, err := s.pins.Get(s.pin.ID)
 	if err != nil {
 		return fmt.Errorf("update pin %q: %w", s.pin.ID, err)

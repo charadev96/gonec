@@ -20,14 +20,14 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	UserService_CreateUser_FullMethodName        = "/gonec.admin.v1.UserService/CreateUser"
-	UserService_CreateInvite_FullMethodName      = "/gonec.admin.v1.UserService/CreateInvite"
-	UserService_ExportInvite_FullMethodName      = "/gonec.admin.v1.UserService/ExportInvite"
+	UserService_CreateClaims_FullMethodName      = "/gonec.admin.v1.UserService/CreateClaims"
+	UserService_ExportClaims_FullMethodName      = "/gonec.admin.v1.UserService/ExportClaims"
 	UserService_GetUserByID_FullMethodName       = "/gonec.admin.v1.UserService/GetUserByID"
 	UserService_GetUserByName_FullMethodName     = "/gonec.admin.v1.UserService/GetUserByName"
-	UserService_GetInviteByUserID_FullMethodName = "/gonec.admin.v1.UserService/GetInviteByUserID"
+	UserService_GetClaimsByUserID_FullMethodName = "/gonec.admin.v1.UserService/GetClaimsByUserID"
 	UserService_ListUsers_FullMethodName         = "/gonec.admin.v1.UserService/ListUsers"
 	UserService_DeleteUser_FullMethodName        = "/gonec.admin.v1.UserService/DeleteUser"
-	UserService_DeleteInvite_FullMethodName      = "/gonec.admin.v1.UserService/DeleteInvite"
+	UserService_DeleteClaims_FullMethodName      = "/gonec.admin.v1.UserService/DeleteClaims"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -35,14 +35,14 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserReply, error)
-	CreateInvite(ctx context.Context, in *CreateInviteRequest, opts ...grpc.CallOption) (*CreateInviteReply, error)
-	ExportInvite(ctx context.Context, in *ExportInviteRequest, opts ...grpc.CallOption) (*ExportInviteReply, error)
+	CreateClaims(ctx context.Context, in *CreateClaimsRequest, opts ...grpc.CallOption) (*CreateClaimsReply, error)
+	ExportClaims(ctx context.Context, in *ExportClaimsRequest, opts ...grpc.CallOption) (*ExportClaimsReply, error)
 	GetUserByID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*GetUserReply, error)
 	GetUserByName(ctx context.Context, in *GetByNameRequest, opts ...grpc.CallOption) (*GetUserReply, error)
-	GetInviteByUserID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*GetInviteReply, error)
+	GetClaimsByUserID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*GetClaimsReply, error)
 	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersReply, error)
 	DeleteUser(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteReply, error)
-	DeleteInvite(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteReply, error)
+	DeleteClaims(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteReply, error)
 }
 
 type userServiceClient struct {
@@ -63,20 +63,20 @@ func (c *userServiceClient) CreateUser(ctx context.Context, in *CreateUserReques
 	return out, nil
 }
 
-func (c *userServiceClient) CreateInvite(ctx context.Context, in *CreateInviteRequest, opts ...grpc.CallOption) (*CreateInviteReply, error) {
+func (c *userServiceClient) CreateClaims(ctx context.Context, in *CreateClaimsRequest, opts ...grpc.CallOption) (*CreateClaimsReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateInviteReply)
-	err := c.cc.Invoke(ctx, UserService_CreateInvite_FullMethodName, in, out, cOpts...)
+	out := new(CreateClaimsReply)
+	err := c.cc.Invoke(ctx, UserService_CreateClaims_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *userServiceClient) ExportInvite(ctx context.Context, in *ExportInviteRequest, opts ...grpc.CallOption) (*ExportInviteReply, error) {
+func (c *userServiceClient) ExportClaims(ctx context.Context, in *ExportClaimsRequest, opts ...grpc.CallOption) (*ExportClaimsReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ExportInviteReply)
-	err := c.cc.Invoke(ctx, UserService_ExportInvite_FullMethodName, in, out, cOpts...)
+	out := new(ExportClaimsReply)
+	err := c.cc.Invoke(ctx, UserService_ExportClaims_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -103,10 +103,10 @@ func (c *userServiceClient) GetUserByName(ctx context.Context, in *GetByNameRequ
 	return out, nil
 }
 
-func (c *userServiceClient) GetInviteByUserID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*GetInviteReply, error) {
+func (c *userServiceClient) GetClaimsByUserID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*GetClaimsReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetInviteReply)
-	err := c.cc.Invoke(ctx, UserService_GetInviteByUserID_FullMethodName, in, out, cOpts...)
+	out := new(GetClaimsReply)
+	err := c.cc.Invoke(ctx, UserService_GetClaimsByUserID_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -133,10 +133,10 @@ func (c *userServiceClient) DeleteUser(ctx context.Context, in *DeleteRequest, o
 	return out, nil
 }
 
-func (c *userServiceClient) DeleteInvite(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteReply, error) {
+func (c *userServiceClient) DeleteClaims(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteReply)
-	err := c.cc.Invoke(ctx, UserService_DeleteInvite_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, UserService_DeleteClaims_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -148,14 +148,14 @@ func (c *userServiceClient) DeleteInvite(ctx context.Context, in *DeleteRequest,
 // for forward compatibility.
 type UserServiceServer interface {
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserReply, error)
-	CreateInvite(context.Context, *CreateInviteRequest) (*CreateInviteReply, error)
-	ExportInvite(context.Context, *ExportInviteRequest) (*ExportInviteReply, error)
+	CreateClaims(context.Context, *CreateClaimsRequest) (*CreateClaimsReply, error)
+	ExportClaims(context.Context, *ExportClaimsRequest) (*ExportClaimsReply, error)
 	GetUserByID(context.Context, *GetByIDRequest) (*GetUserReply, error)
 	GetUserByName(context.Context, *GetByNameRequest) (*GetUserReply, error)
-	GetInviteByUserID(context.Context, *GetByIDRequest) (*GetInviteReply, error)
+	GetClaimsByUserID(context.Context, *GetByIDRequest) (*GetClaimsReply, error)
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersReply, error)
 	DeleteUser(context.Context, *DeleteRequest) (*DeleteReply, error)
-	DeleteInvite(context.Context, *DeleteRequest) (*DeleteReply, error)
+	DeleteClaims(context.Context, *DeleteRequest) (*DeleteReply, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -169,11 +169,11 @@ type UnimplementedUserServiceServer struct{}
 func (UnimplementedUserServiceServer) CreateUser(context.Context, *CreateUserRequest) (*CreateUserReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateUser not implemented")
 }
-func (UnimplementedUserServiceServer) CreateInvite(context.Context, *CreateInviteRequest) (*CreateInviteReply, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateInvite not implemented")
+func (UnimplementedUserServiceServer) CreateClaims(context.Context, *CreateClaimsRequest) (*CreateClaimsReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateClaims not implemented")
 }
-func (UnimplementedUserServiceServer) ExportInvite(context.Context, *ExportInviteRequest) (*ExportInviteReply, error) {
-	return nil, status.Error(codes.Unimplemented, "method ExportInvite not implemented")
+func (UnimplementedUserServiceServer) ExportClaims(context.Context, *ExportClaimsRequest) (*ExportClaimsReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method ExportClaims not implemented")
 }
 func (UnimplementedUserServiceServer) GetUserByID(context.Context, *GetByIDRequest) (*GetUserReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserByID not implemented")
@@ -181,8 +181,8 @@ func (UnimplementedUserServiceServer) GetUserByID(context.Context, *GetByIDReque
 func (UnimplementedUserServiceServer) GetUserByName(context.Context, *GetByNameRequest) (*GetUserReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserByName not implemented")
 }
-func (UnimplementedUserServiceServer) GetInviteByUserID(context.Context, *GetByIDRequest) (*GetInviteReply, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetInviteByUserID not implemented")
+func (UnimplementedUserServiceServer) GetClaimsByUserID(context.Context, *GetByIDRequest) (*GetClaimsReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetClaimsByUserID not implemented")
 }
 func (UnimplementedUserServiceServer) ListUsers(context.Context, *ListUsersRequest) (*ListUsersReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListUsers not implemented")
@@ -190,8 +190,8 @@ func (UnimplementedUserServiceServer) ListUsers(context.Context, *ListUsersReque
 func (UnimplementedUserServiceServer) DeleteUser(context.Context, *DeleteRequest) (*DeleteReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteUser not implemented")
 }
-func (UnimplementedUserServiceServer) DeleteInvite(context.Context, *DeleteRequest) (*DeleteReply, error) {
-	return nil, status.Error(codes.Unimplemented, "method DeleteInvite not implemented")
+func (UnimplementedUserServiceServer) DeleteClaims(context.Context, *DeleteRequest) (*DeleteReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteClaims not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -232,38 +232,38 @@ func _UserService_CreateUser_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_CreateInvite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateInviteRequest)
+func _UserService_CreateClaims_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateClaimsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServiceServer).CreateInvite(ctx, in)
+		return srv.(UserServiceServer).CreateClaims(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserService_CreateInvite_FullMethodName,
+		FullMethod: UserService_CreateClaims_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).CreateInvite(ctx, req.(*CreateInviteRequest))
+		return srv.(UserServiceServer).CreateClaims(ctx, req.(*CreateClaimsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_ExportInvite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ExportInviteRequest)
+func _UserService_ExportClaims_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExportClaimsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServiceServer).ExportInvite(ctx, in)
+		return srv.(UserServiceServer).ExportClaims(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserService_ExportInvite_FullMethodName,
+		FullMethod: UserService_ExportClaims_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).ExportInvite(ctx, req.(*ExportInviteRequest))
+		return srv.(UserServiceServer).ExportClaims(ctx, req.(*ExportClaimsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -304,20 +304,20 @@ func _UserService_GetUserByName_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_GetInviteByUserID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserService_GetClaimsByUserID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetByIDRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServiceServer).GetInviteByUserID(ctx, in)
+		return srv.(UserServiceServer).GetClaimsByUserID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserService_GetInviteByUserID_FullMethodName,
+		FullMethod: UserService_GetClaimsByUserID_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetInviteByUserID(ctx, req.(*GetByIDRequest))
+		return srv.(UserServiceServer).GetClaimsByUserID(ctx, req.(*GetByIDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -358,20 +358,20 @@ func _UserService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_DeleteInvite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserService_DeleteClaims_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServiceServer).DeleteInvite(ctx, in)
+		return srv.(UserServiceServer).DeleteClaims(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserService_DeleteInvite_FullMethodName,
+		FullMethod: UserService_DeleteClaims_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).DeleteInvite(ctx, req.(*DeleteRequest))
+		return srv.(UserServiceServer).DeleteClaims(ctx, req.(*DeleteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -388,12 +388,12 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_CreateUser_Handler,
 		},
 		{
-			MethodName: "CreateInvite",
-			Handler:    _UserService_CreateInvite_Handler,
+			MethodName: "CreateClaims",
+			Handler:    _UserService_CreateClaims_Handler,
 		},
 		{
-			MethodName: "ExportInvite",
-			Handler:    _UserService_ExportInvite_Handler,
+			MethodName: "ExportClaims",
+			Handler:    _UserService_ExportClaims_Handler,
 		},
 		{
 			MethodName: "GetUserByID",
@@ -404,8 +404,8 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_GetUserByName_Handler,
 		},
 		{
-			MethodName: "GetInviteByUserID",
-			Handler:    _UserService_GetInviteByUserID_Handler,
+			MethodName: "GetClaimsByUserID",
+			Handler:    _UserService_GetClaimsByUserID_Handler,
 		},
 		{
 			MethodName: "ListUsers",
@@ -416,8 +416,8 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_DeleteUser_Handler,
 		},
 		{
-			MethodName: "DeleteInvite",
-			Handler:    _UserService_DeleteInvite_Handler,
+			MethodName: "DeleteClaims",
+			Handler:    _UserService_DeleteClaims_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

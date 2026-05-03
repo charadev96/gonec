@@ -40,26 +40,26 @@ type Server struct {
 	gateway GatewayConfig
 	db      domain.DB
 
-	user *service.UserService
-	chat *service.ChatService
+	user *service.User
+	chat *service.Chat
 }
 
 func New(adm AdminConfig, gtw GatewayConfig, db domain.DB) *Server {
 	l := zerolog.Nop()
 
 	var (
-		user = service.NewUserService(
+		user = service.NewUser(
 			shared.ServerIdentity{
 				IPAddress: gtw.Addr,
 				PublicKey: gtw.CertProvider.GetPublicKey(),
 			},
 			db.Users,
-			db.Invites,
+			db.Claims,
 			db.Nonces,
 			db.Sessions,
 			db.TxRunner,
 		)
-		chat = service.NewChatService(
+		chat = service.NewChat(
 			db.Users,
 			user,
 		)

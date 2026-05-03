@@ -74,7 +74,7 @@ func (x *ServerIdentity) GetPublicKey() []byte {
 	return nil
 }
 
-type InviteCredential struct {
+type InviteClaims struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Token         []byte                 `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"`
@@ -84,20 +84,20 @@ type InviteCredential struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *InviteCredential) Reset() {
-	*x = InviteCredential{}
+func (x *InviteClaims) Reset() {
+	*x = InviteClaims{}
 	mi := &file_shared_auth_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *InviteCredential) String() string {
+func (x *InviteClaims) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*InviteCredential) ProtoMessage() {}
+func (*InviteClaims) ProtoMessage() {}
 
-func (x *InviteCredential) ProtoReflect() protoreflect.Message {
+func (x *InviteClaims) ProtoReflect() protoreflect.Message {
 	mi := &file_shared_auth_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -109,33 +109,33 @@ func (x *InviteCredential) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use InviteCredential.ProtoReflect.Descriptor instead.
-func (*InviteCredential) Descriptor() ([]byte, []int) {
+// Deprecated: Use InviteClaims.ProtoReflect.Descriptor instead.
+func (*InviteClaims) Descriptor() ([]byte, []int) {
 	return file_shared_auth_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *InviteCredential) GetUserId() string {
+func (x *InviteClaims) GetUserId() string {
 	if x != nil {
 		return x.UserId
 	}
 	return ""
 }
 
-func (x *InviteCredential) GetToken() []byte {
+func (x *InviteClaims) GetToken() []byte {
 	if x != nil {
 		return x.Token
 	}
 	return nil
 }
 
-func (x *InviteCredential) GetNotBefore() *timestamppb.Timestamp {
+func (x *InviteClaims) GetNotBefore() *timestamppb.Timestamp {
 	if x != nil {
 		return x.NotBefore
 	}
 	return nil
 }
 
-func (x *InviteCredential) GetNotAfter() *timestamppb.Timestamp {
+func (x *InviteClaims) GetNotAfter() *timestamppb.Timestamp {
 	if x != nil {
 		return x.NotAfter
 	}
@@ -145,7 +145,7 @@ func (x *InviteCredential) GetNotAfter() *timestamppb.Timestamp {
 type InviteTicket struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Server        *ServerIdentity        `protobuf:"bytes,1,opt,name=server,proto3" json:"server,omitempty"`
-	Credential    *InviteCredential      `protobuf:"bytes,2,opt,name=credential,proto3" json:"credential,omitempty"`
+	Claims        *InviteClaims          `protobuf:"bytes,2,opt,name=claims,proto3" json:"claims,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -187,9 +187,9 @@ func (x *InviteTicket) GetServer() *ServerIdentity {
 	return nil
 }
 
-func (x *InviteTicket) GetCredential() *InviteCredential {
+func (x *InviteTicket) GetClaims() *InviteClaims {
 	if x != nil {
-		return x.Credential
+		return x.Claims
 	}
 	return nil
 }
@@ -263,18 +263,16 @@ const file_shared_auth_proto_rawDesc = "" +
 	"\n" +
 	"ip_address\x18\x01 \x01(\tR\tipAddress\x12\x1d\n" +
 	"\n" +
-	"public_key\x18\x02 \x01(\fR\tpublicKey\"\xb5\x01\n" +
-	"\x10InviteCredential\x12\x17\n" +
+	"public_key\x18\x02 \x01(\fR\tpublicKey\"\xb1\x01\n" +
+	"\fInviteClaims\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05token\x18\x02 \x01(\fR\x05token\x129\n" +
 	"\n" +
 	"not_before\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tnotBefore\x127\n" +
-	"\tnot_after\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\bnotAfter\"\x8a\x01\n" +
+	"\tnot_after\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\bnotAfter\"~\n" +
 	"\fInviteTicket\x127\n" +
-	"\x06server\x18\x01 \x01(\v2\x1f.gonec.shared.v1.ServerIdentityR\x06server\x12A\n" +
-	"\n" +
-	"credential\x18\x02 \x01(\v2!.gonec.shared.v1.InviteCredentialR\n" +
-	"credential\"H\n" +
+	"\x06server\x18\x01 \x01(\v2\x1f.gonec.shared.v1.ServerIdentityR\x06server\x125\n" +
+	"\x06claims\x18\x02 \x01(\v2\x1d.gonec.shared.v1.InviteClaimsR\x06claims\"H\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x14\n" +
@@ -295,16 +293,16 @@ func file_shared_auth_proto_rawDescGZIP() []byte {
 var file_shared_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_shared_auth_proto_goTypes = []any{
 	(*ServerIdentity)(nil),        // 0: gonec.shared.v1.ServerIdentity
-	(*InviteCredential)(nil),      // 1: gonec.shared.v1.InviteCredential
+	(*InviteClaims)(nil),          // 1: gonec.shared.v1.InviteClaims
 	(*InviteTicket)(nil),          // 2: gonec.shared.v1.InviteTicket
 	(*Session)(nil),               // 3: gonec.shared.v1.Session
 	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
 }
 var file_shared_auth_proto_depIdxs = []int32{
-	4, // 0: gonec.shared.v1.InviteCredential.not_before:type_name -> google.protobuf.Timestamp
-	4, // 1: gonec.shared.v1.InviteCredential.not_after:type_name -> google.protobuf.Timestamp
+	4, // 0: gonec.shared.v1.InviteClaims.not_before:type_name -> google.protobuf.Timestamp
+	4, // 1: gonec.shared.v1.InviteClaims.not_after:type_name -> google.protobuf.Timestamp
 	0, // 2: gonec.shared.v1.InviteTicket.server:type_name -> gonec.shared.v1.ServerIdentity
-	1, // 3: gonec.shared.v1.InviteTicket.credential:type_name -> gonec.shared.v1.InviteCredential
+	1, // 3: gonec.shared.v1.InviteTicket.claims:type_name -> gonec.shared.v1.InviteClaims
 	4, // [4:4] is the sub-list for method output_type
 	4, // [4:4] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name

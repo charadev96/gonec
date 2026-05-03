@@ -220,7 +220,7 @@ func (x *CreateUserReply) GetUserId() string {
 	return ""
 }
 
-type CreateInviteRequest struct {
+type CreateClaimsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	NotBefore     *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=not_before,json=notBefore,proto3" json:"not_before,omitempty"`
@@ -229,20 +229,20 @@ type CreateInviteRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateInviteRequest) Reset() {
-	*x = CreateInviteRequest{}
+func (x *CreateClaimsRequest) Reset() {
+	*x = CreateClaimsRequest{}
 	mi := &file_admin_user_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateInviteRequest) String() string {
+func (x *CreateClaimsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateInviteRequest) ProtoMessage() {}
+func (*CreateClaimsRequest) ProtoMessage() {}
 
-func (x *CreateInviteRequest) ProtoReflect() protoreflect.Message {
+func (x *CreateClaimsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_admin_user_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -254,53 +254,53 @@ func (x *CreateInviteRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateInviteRequest.ProtoReflect.Descriptor instead.
-func (*CreateInviteRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateClaimsRequest.ProtoReflect.Descriptor instead.
+func (*CreateClaimsRequest) Descriptor() ([]byte, []int) {
 	return file_admin_user_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *CreateInviteRequest) GetUserId() string {
+func (x *CreateClaimsRequest) GetUserId() string {
 	if x != nil {
 		return x.UserId
 	}
 	return ""
 }
 
-func (x *CreateInviteRequest) GetNotBefore() *timestamppb.Timestamp {
+func (x *CreateClaimsRequest) GetNotBefore() *timestamppb.Timestamp {
 	if x != nil {
 		return x.NotBefore
 	}
 	return nil
 }
 
-func (x *CreateInviteRequest) GetNotAfter() *timestamppb.Timestamp {
+func (x *CreateClaimsRequest) GetNotAfter() *timestamppb.Timestamp {
 	if x != nil {
 		return x.NotAfter
 	}
 	return nil
 }
 
-type CreateInviteReply struct {
-	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Invite        *shared.InviteCredential `protobuf:"bytes,1,opt,name=invite,proto3" json:"invite,omitempty"`
+type CreateClaimsReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Claims        *shared.InviteClaims   `protobuf:"bytes,1,opt,name=claims,proto3" json:"claims,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateInviteReply) Reset() {
-	*x = CreateInviteReply{}
+func (x *CreateClaimsReply) Reset() {
+	*x = CreateClaimsReply{}
 	mi := &file_admin_user_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateInviteReply) String() string {
+func (x *CreateClaimsReply) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateInviteReply) ProtoMessage() {}
+func (*CreateClaimsReply) ProtoMessage() {}
 
-func (x *CreateInviteReply) ProtoReflect() protoreflect.Message {
+func (x *CreateClaimsReply) ProtoReflect() protoreflect.Message {
 	mi := &file_admin_user_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -312,39 +312,39 @@ func (x *CreateInviteReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateInviteReply.ProtoReflect.Descriptor instead.
-func (*CreateInviteReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateClaimsReply.ProtoReflect.Descriptor instead.
+func (*CreateClaimsReply) Descriptor() ([]byte, []int) {
 	return file_admin_user_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *CreateInviteReply) GetInvite() *shared.InviteCredential {
+func (x *CreateClaimsReply) GetClaims() *shared.InviteClaims {
 	if x != nil {
-		return x.Invite
+		return x.Claims
 	}
 	return nil
 }
 
-type ExportInviteRequest struct {
+type ExportClaimsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ExportInviteRequest) Reset() {
-	*x = ExportInviteRequest{}
+func (x *ExportClaimsRequest) Reset() {
+	*x = ExportClaimsRequest{}
 	mi := &file_admin_user_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ExportInviteRequest) String() string {
+func (x *ExportClaimsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ExportInviteRequest) ProtoMessage() {}
+func (*ExportClaimsRequest) ProtoMessage() {}
 
-func (x *ExportInviteRequest) ProtoReflect() protoreflect.Message {
+func (x *ExportClaimsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_admin_user_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -356,39 +356,39 @@ func (x *ExportInviteRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ExportInviteRequest.ProtoReflect.Descriptor instead.
-func (*ExportInviteRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ExportClaimsRequest.ProtoReflect.Descriptor instead.
+func (*ExportClaimsRequest) Descriptor() ([]byte, []int) {
 	return file_admin_user_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *ExportInviteRequest) GetUserId() string {
+func (x *ExportClaimsRequest) GetUserId() string {
 	if x != nil {
 		return x.UserId
 	}
 	return ""
 }
 
-type ExportInviteReply struct {
+type ExportClaimsReply struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Ticket        *shared.InviteTicket   `protobuf:"bytes,1,opt,name=ticket,proto3" json:"ticket,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ExportInviteReply) Reset() {
-	*x = ExportInviteReply{}
+func (x *ExportClaimsReply) Reset() {
+	*x = ExportClaimsReply{}
 	mi := &file_admin_user_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ExportInviteReply) String() string {
+func (x *ExportClaimsReply) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ExportInviteReply) ProtoMessage() {}
+func (*ExportClaimsReply) ProtoMessage() {}
 
-func (x *ExportInviteReply) ProtoReflect() protoreflect.Message {
+func (x *ExportClaimsReply) ProtoReflect() protoreflect.Message {
 	mi := &file_admin_user_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -400,12 +400,12 @@ func (x *ExportInviteReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ExportInviteReply.ProtoReflect.Descriptor instead.
-func (*ExportInviteReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use ExportClaimsReply.ProtoReflect.Descriptor instead.
+func (*ExportClaimsReply) Descriptor() ([]byte, []int) {
 	return file_admin_user_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *ExportInviteReply) GetTicket() *shared.InviteTicket {
+func (x *ExportClaimsReply) GetTicket() *shared.InviteTicket {
 	if x != nil {
 		return x.Ticket
 	}
@@ -544,27 +544,27 @@ func (x *GetUserReply) GetUser() *User {
 	return nil
 }
 
-type GetInviteReply struct {
-	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Invite        *shared.InviteCredential `protobuf:"bytes,1,opt,name=invite,proto3" json:"invite,omitempty"`
+type GetClaimsReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Claims        *shared.InviteClaims   `protobuf:"bytes,1,opt,name=claims,proto3" json:"claims,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetInviteReply) Reset() {
-	*x = GetInviteReply{}
+func (x *GetClaimsReply) Reset() {
+	*x = GetClaimsReply{}
 	mi := &file_admin_user_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetInviteReply) String() string {
+func (x *GetClaimsReply) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetInviteReply) ProtoMessage() {}
+func (*GetClaimsReply) ProtoMessage() {}
 
-func (x *GetInviteReply) ProtoReflect() protoreflect.Message {
+func (x *GetClaimsReply) ProtoReflect() protoreflect.Message {
 	mi := &file_admin_user_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -576,14 +576,14 @@ func (x *GetInviteReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetInviteReply.ProtoReflect.Descriptor instead.
-func (*GetInviteReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetClaimsReply.ProtoReflect.Descriptor instead.
+func (*GetClaimsReply) Descriptor() ([]byte, []int) {
 	return file_admin_user_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *GetInviteReply) GetInvite() *shared.InviteCredential {
+func (x *GetClaimsReply) GetClaims() *shared.InviteClaims {
 	if x != nil {
-		return x.Invite
+		return x.Claims
 	}
 	return nil
 }
@@ -786,25 +786,25 @@ const file_admin_user_proto_rawDesc = "" +
 	"\x11CreateUserRequest\"*\n" +
 	"\x0fCreateUserReply\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"\xa2\x01\n" +
-	"\x13CreateInviteRequest\x12\x17\n" +
+	"\x13CreateClaimsRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x129\n" +
 	"\n" +
 	"not_before\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tnotBefore\x127\n" +
-	"\tnot_after\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\bnotAfter\"N\n" +
-	"\x11CreateInviteReply\x129\n" +
-	"\x06invite\x18\x01 \x01(\v2!.gonec.shared.v1.InviteCredentialR\x06invite\".\n" +
-	"\x13ExportInviteRequest\x12\x17\n" +
+	"\tnot_after\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\bnotAfter\"J\n" +
+	"\x11CreateClaimsReply\x125\n" +
+	"\x06claims\x18\x01 \x01(\v2\x1d.gonec.shared.v1.InviteClaimsR\x06claims\".\n" +
+	"\x13ExportClaimsRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"J\n" +
-	"\x11ExportInviteReply\x125\n" +
+	"\x11ExportClaimsReply\x125\n" +
 	"\x06ticket\x18\x01 \x01(\v2\x1d.gonec.shared.v1.InviteTicketR\x06ticket\" \n" +
 	"\x0eGetByIDRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"&\n" +
 	"\x10GetByNameRequest\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\"8\n" +
 	"\fGetUserReply\x12(\n" +
-	"\x04user\x18\x01 \x01(\v2\x14.gonec.admin.v1.UserR\x04user\"K\n" +
-	"\x0eGetInviteReply\x129\n" +
-	"\x06invite\x18\x01 \x01(\v2!.gonec.shared.v1.InviteCredentialR\x06invite\"@\n" +
+	"\x04user\x18\x01 \x01(\v2\x14.gonec.admin.v1.UserR\x04user\"G\n" +
+	"\x0eGetClaimsReply\x125\n" +
+	"\x06claims\x18\x01 \x01(\v2\x1d.gonec.shared.v1.InviteClaimsR\x06claims\"@\n" +
 	"\x10ListUsersRequest\x12\x14\n" +
 	"\x05limit\x18\x01 \x01(\rR\x05limit\x12\x16\n" +
 	"\x06cursor\x18\x02 \x01(\tR\x06cursor\"T\n" +
@@ -821,15 +821,15 @@ const file_admin_user_proto_rawDesc = "" +
 	"\vUserService\x12P\n" +
 	"\n" +
 	"CreateUser\x12!.gonec.admin.v1.CreateUserRequest\x1a\x1f.gonec.admin.v1.CreateUserReply\x12V\n" +
-	"\fCreateInvite\x12#.gonec.admin.v1.CreateInviteRequest\x1a!.gonec.admin.v1.CreateInviteReply\x12V\n" +
-	"\fExportInvite\x12#.gonec.admin.v1.ExportInviteRequest\x1a!.gonec.admin.v1.ExportInviteReply\x12K\n" +
+	"\fCreateClaims\x12#.gonec.admin.v1.CreateClaimsRequest\x1a!.gonec.admin.v1.CreateClaimsReply\x12V\n" +
+	"\fExportClaims\x12#.gonec.admin.v1.ExportClaimsRequest\x1a!.gonec.admin.v1.ExportClaimsReply\x12K\n" +
 	"\vGetUserByID\x12\x1e.gonec.admin.v1.GetByIDRequest\x1a\x1c.gonec.admin.v1.GetUserReply\x12O\n" +
 	"\rGetUserByName\x12 .gonec.admin.v1.GetByNameRequest\x1a\x1c.gonec.admin.v1.GetUserReply\x12S\n" +
-	"\x11GetInviteByUserID\x12\x1e.gonec.admin.v1.GetByIDRequest\x1a\x1e.gonec.admin.v1.GetInviteReply\x12M\n" +
+	"\x11GetClaimsByUserID\x12\x1e.gonec.admin.v1.GetByIDRequest\x1a\x1e.gonec.admin.v1.GetClaimsReply\x12M\n" +
 	"\tListUsers\x12 .gonec.admin.v1.ListUsersRequest\x1a\x1e.gonec.admin.v1.ListUsersReply\x12H\n" +
 	"\n" +
 	"DeleteUser\x12\x1d.gonec.admin.v1.DeleteRequest\x1a\x1b.gonec.admin.v1.DeleteReply\x12J\n" +
-	"\fDeleteInvite\x12\x1d.gonec.admin.v1.DeleteRequest\x1a\x1b.gonec.admin.v1.DeleteReplyB'Z%github.com/charadev96/gonec/gen/adminb\x06proto3"
+	"\fDeleteClaims\x12\x1d.gonec.admin.v1.DeleteRequest\x1a\x1b.gonec.admin.v1.DeleteReplyB'Z%github.com/charadev96/gonec/gen/adminb\x06proto3"
 
 var (
 	file_admin_user_proto_rawDescOnce sync.Once
@@ -846,53 +846,53 @@ func file_admin_user_proto_rawDescGZIP() []byte {
 var file_admin_user_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_admin_user_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_admin_user_proto_goTypes = []any{
-	(UserState)(0),                  // 0: gonec.admin.v1.UserState
-	(*User)(nil),                    // 1: gonec.admin.v1.User
-	(*CreateUserRequest)(nil),       // 2: gonec.admin.v1.CreateUserRequest
-	(*CreateUserReply)(nil),         // 3: gonec.admin.v1.CreateUserReply
-	(*CreateInviteRequest)(nil),     // 4: gonec.admin.v1.CreateInviteRequest
-	(*CreateInviteReply)(nil),       // 5: gonec.admin.v1.CreateInviteReply
-	(*ExportInviteRequest)(nil),     // 6: gonec.admin.v1.ExportInviteRequest
-	(*ExportInviteReply)(nil),       // 7: gonec.admin.v1.ExportInviteReply
-	(*GetByIDRequest)(nil),          // 8: gonec.admin.v1.GetByIDRequest
-	(*GetByNameRequest)(nil),        // 9: gonec.admin.v1.GetByNameRequest
-	(*GetUserReply)(nil),            // 10: gonec.admin.v1.GetUserReply
-	(*GetInviteReply)(nil),          // 11: gonec.admin.v1.GetInviteReply
-	(*ListUsersRequest)(nil),        // 12: gonec.admin.v1.ListUsersRequest
-	(*ListUsersReply)(nil),          // 13: gonec.admin.v1.ListUsersReply
-	(*DeleteRequest)(nil),           // 14: gonec.admin.v1.DeleteRequest
-	(*DeleteReply)(nil),             // 15: gonec.admin.v1.DeleteReply
-	(*timestamppb.Timestamp)(nil),   // 16: google.protobuf.Timestamp
-	(*shared.InviteCredential)(nil), // 17: gonec.shared.v1.InviteCredential
-	(*shared.InviteTicket)(nil),     // 18: gonec.shared.v1.InviteTicket
+	(UserState)(0),                // 0: gonec.admin.v1.UserState
+	(*User)(nil),                  // 1: gonec.admin.v1.User
+	(*CreateUserRequest)(nil),     // 2: gonec.admin.v1.CreateUserRequest
+	(*CreateUserReply)(nil),       // 3: gonec.admin.v1.CreateUserReply
+	(*CreateClaimsRequest)(nil),   // 4: gonec.admin.v1.CreateClaimsRequest
+	(*CreateClaimsReply)(nil),     // 5: gonec.admin.v1.CreateClaimsReply
+	(*ExportClaimsRequest)(nil),   // 6: gonec.admin.v1.ExportClaimsRequest
+	(*ExportClaimsReply)(nil),     // 7: gonec.admin.v1.ExportClaimsReply
+	(*GetByIDRequest)(nil),        // 8: gonec.admin.v1.GetByIDRequest
+	(*GetByNameRequest)(nil),      // 9: gonec.admin.v1.GetByNameRequest
+	(*GetUserReply)(nil),          // 10: gonec.admin.v1.GetUserReply
+	(*GetClaimsReply)(nil),        // 11: gonec.admin.v1.GetClaimsReply
+	(*ListUsersRequest)(nil),      // 12: gonec.admin.v1.ListUsersRequest
+	(*ListUsersReply)(nil),        // 13: gonec.admin.v1.ListUsersReply
+	(*DeleteRequest)(nil),         // 14: gonec.admin.v1.DeleteRequest
+	(*DeleteReply)(nil),           // 15: gonec.admin.v1.DeleteReply
+	(*timestamppb.Timestamp)(nil), // 16: google.protobuf.Timestamp
+	(*shared.InviteClaims)(nil),   // 17: gonec.shared.v1.InviteClaims
+	(*shared.InviteTicket)(nil),   // 18: gonec.shared.v1.InviteTicket
 }
 var file_admin_user_proto_depIdxs = []int32{
 	0,  // 0: gonec.admin.v1.User.state:type_name -> gonec.admin.v1.UserState
-	16, // 1: gonec.admin.v1.CreateInviteRequest.not_before:type_name -> google.protobuf.Timestamp
-	16, // 2: gonec.admin.v1.CreateInviteRequest.not_after:type_name -> google.protobuf.Timestamp
-	17, // 3: gonec.admin.v1.CreateInviteReply.invite:type_name -> gonec.shared.v1.InviteCredential
-	18, // 4: gonec.admin.v1.ExportInviteReply.ticket:type_name -> gonec.shared.v1.InviteTicket
+	16, // 1: gonec.admin.v1.CreateClaimsRequest.not_before:type_name -> google.protobuf.Timestamp
+	16, // 2: gonec.admin.v1.CreateClaimsRequest.not_after:type_name -> google.protobuf.Timestamp
+	17, // 3: gonec.admin.v1.CreateClaimsReply.claims:type_name -> gonec.shared.v1.InviteClaims
+	18, // 4: gonec.admin.v1.ExportClaimsReply.ticket:type_name -> gonec.shared.v1.InviteTicket
 	1,  // 5: gonec.admin.v1.GetUserReply.user:type_name -> gonec.admin.v1.User
-	17, // 6: gonec.admin.v1.GetInviteReply.invite:type_name -> gonec.shared.v1.InviteCredential
+	17, // 6: gonec.admin.v1.GetClaimsReply.claims:type_name -> gonec.shared.v1.InviteClaims
 	1,  // 7: gonec.admin.v1.ListUsersReply.users:type_name -> gonec.admin.v1.User
 	2,  // 8: gonec.admin.v1.UserService.CreateUser:input_type -> gonec.admin.v1.CreateUserRequest
-	4,  // 9: gonec.admin.v1.UserService.CreateInvite:input_type -> gonec.admin.v1.CreateInviteRequest
-	6,  // 10: gonec.admin.v1.UserService.ExportInvite:input_type -> gonec.admin.v1.ExportInviteRequest
+	4,  // 9: gonec.admin.v1.UserService.CreateClaims:input_type -> gonec.admin.v1.CreateClaimsRequest
+	6,  // 10: gonec.admin.v1.UserService.ExportClaims:input_type -> gonec.admin.v1.ExportClaimsRequest
 	8,  // 11: gonec.admin.v1.UserService.GetUserByID:input_type -> gonec.admin.v1.GetByIDRequest
 	9,  // 12: gonec.admin.v1.UserService.GetUserByName:input_type -> gonec.admin.v1.GetByNameRequest
-	8,  // 13: gonec.admin.v1.UserService.GetInviteByUserID:input_type -> gonec.admin.v1.GetByIDRequest
+	8,  // 13: gonec.admin.v1.UserService.GetClaimsByUserID:input_type -> gonec.admin.v1.GetByIDRequest
 	12, // 14: gonec.admin.v1.UserService.ListUsers:input_type -> gonec.admin.v1.ListUsersRequest
 	14, // 15: gonec.admin.v1.UserService.DeleteUser:input_type -> gonec.admin.v1.DeleteRequest
-	14, // 16: gonec.admin.v1.UserService.DeleteInvite:input_type -> gonec.admin.v1.DeleteRequest
+	14, // 16: gonec.admin.v1.UserService.DeleteClaims:input_type -> gonec.admin.v1.DeleteRequest
 	3,  // 17: gonec.admin.v1.UserService.CreateUser:output_type -> gonec.admin.v1.CreateUserReply
-	5,  // 18: gonec.admin.v1.UserService.CreateInvite:output_type -> gonec.admin.v1.CreateInviteReply
-	7,  // 19: gonec.admin.v1.UserService.ExportInvite:output_type -> gonec.admin.v1.ExportInviteReply
+	5,  // 18: gonec.admin.v1.UserService.CreateClaims:output_type -> gonec.admin.v1.CreateClaimsReply
+	7,  // 19: gonec.admin.v1.UserService.ExportClaims:output_type -> gonec.admin.v1.ExportClaimsReply
 	10, // 20: gonec.admin.v1.UserService.GetUserByID:output_type -> gonec.admin.v1.GetUserReply
 	10, // 21: gonec.admin.v1.UserService.GetUserByName:output_type -> gonec.admin.v1.GetUserReply
-	11, // 22: gonec.admin.v1.UserService.GetInviteByUserID:output_type -> gonec.admin.v1.GetInviteReply
+	11, // 22: gonec.admin.v1.UserService.GetClaimsByUserID:output_type -> gonec.admin.v1.GetClaimsReply
 	13, // 23: gonec.admin.v1.UserService.ListUsers:output_type -> gonec.admin.v1.ListUsersReply
 	15, // 24: gonec.admin.v1.UserService.DeleteUser:output_type -> gonec.admin.v1.DeleteReply
-	15, // 25: gonec.admin.v1.UserService.DeleteInvite:output_type -> gonec.admin.v1.DeleteReply
+	15, // 25: gonec.admin.v1.UserService.DeleteClaims:output_type -> gonec.admin.v1.DeleteReply
 	17, // [17:26] is the sub-list for method output_type
 	8,  // [8:17] is the sub-list for method input_type
 	8,  // [8:8] is the sub-list for extension type_name

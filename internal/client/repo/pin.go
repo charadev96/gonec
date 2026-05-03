@@ -19,22 +19,22 @@ const (
 	permRepository = 0644
 )
 
-type YAMLConnPinRepository struct {
+type YAMLConnPin struct {
 	file string
 
 	data       schema
 	modifiedAt time.Time
 }
 
-func NewYAMLConnPinRepository(f string) *YAMLConnPinRepository {
-	r := &YAMLConnPinRepository{
+func NewYAMLConnPin(f string) *YAMLConnPin {
+	r := &YAMLConnPin{
 		file: f,
 		data: schema{make(map[string]*connPin)},
 	}
 	return r
 }
 
-func (r *YAMLConnPinRepository) Get(id string) (client.ConnPin, error) {
+func (r *YAMLConnPin) Get(id string) (client.ConnPin, error) {
 	modified, err := r.fileModified()
 	if err != nil {
 		return client.ConnPin{}, fmt.Errorf("compare timestamp: %w", err)
@@ -51,7 +51,7 @@ func (r *YAMLConnPinRepository) Get(id string) (client.ConnPin, error) {
 	return connPinFromDB(p, id), nil
 }
 
-func (r *YAMLConnPinRepository) Set(id string, pin client.ConnPin) error {
+func (r *YAMLConnPin) Set(id string, pin client.ConnPin) error {
 	modified, err := r.fileModified()
 	if err != nil {
 		return fmt.Errorf("compare timestamp: %w", err)
@@ -68,7 +68,7 @@ func (r *YAMLConnPinRepository) Set(id string, pin client.ConnPin) error {
 	return nil
 }
 
-func (r *YAMLConnPinRepository) Delete(id string) error {
+func (r *YAMLConnPin) Delete(id string) error {
 	_, ok := r.data.Conns[id]
 	if !ok {
 		return fmt.Errorf("%q: %w", id, shared.ErrNotExist)
@@ -182,7 +182,7 @@ type schema struct {
 	Conns map[string]*connPin `yaml:"connections"`
 }
 
-func (r *YAMLConnPinRepository) fileModified() (bool, error) {
+func (r *YAMLConnPin) fileModified() (bool, error) {
 	info, err := os.Stat(r.file)
 	if err != nil {
 		return false, err
@@ -195,7 +195,7 @@ func (r *YAMLConnPinRepository) fileModified() (bool, error) {
 	return mod, nil
 }
 
-func (r *YAMLConnPinRepository) load() error {
+func (r *YAMLConnPin) load() error {
 	f, err := os.OpenFile(r.file, os.O_RDONLY, permRepository)
 	if err != nil {
 		return err
@@ -218,7 +218,7 @@ func (r *YAMLConnPinRepository) load() error {
 	return nil
 }
 
-func (r *YAMLConnPinRepository) save() error {
+func (r *YAMLConnPin) save() error {
 	raw, err := yaml.Marshal(r.data)
 	if err != nil {
 		return fmt.Errorf("marshal yaml: %w", err)

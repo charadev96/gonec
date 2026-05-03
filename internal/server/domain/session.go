@@ -15,7 +15,7 @@ type Session struct {
 }
 
 type SessionRepository interface {
-	Save(ctx context.Context, sess Session) error
+	Save(ctx context.Context, s Session) error
 	GetByID(ctx context.Context, id uuid.UUID) (Session, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }

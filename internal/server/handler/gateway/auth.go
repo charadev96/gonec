@@ -16,10 +16,10 @@ import (
 
 type AuthHandler struct {
 	gatewaypb.UnimplementedAuthServiceServer
-	service *service.UserService
+	service *service.User
 }
 
-func NewAuthHandler(s *service.UserService) *AuthHandler {
+func NewAuthHandler(s *service.User) *AuthHandler {
 	return &AuthHandler{service: s}
 }
 

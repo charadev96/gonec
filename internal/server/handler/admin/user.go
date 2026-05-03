@@ -16,10 +16,10 @@ import (
 
 type UserHandler struct {
 	adminpb.UnimplementedUserServiceServer
-	service *service.UserService
+	service *service.User
 }
 
-func NewUserHandler(s *service.UserService) *UserHandler {
+func NewUserHandler(s *service.User) *UserHandler {
 	return &UserHandler{service: s}
 }
 
@@ -31,32 +31,32 @@ func (h *UserHandler) CreateUser(ctx context.Context, req *adminpb.CreateUserReq
 	return &adminpb.CreateUserReply{UserId: id.String()}, nil
 }
 
-func (h *UserHandler) CreateInvite(ctx context.Context, req *adminpb.CreateInviteRequest) (*adminpb.CreateInviteReply, error) {
+func (h *UserHandler) CreateClaims(ctx context.Context, req *adminpb.CreateClaimsRequest) (*adminpb.CreateClaimsReply, error) {
 	id, err := uuid.Parse(req.UserId)
 	if err != nil {
 		return nil, handler.ErrArg(err)
 	}
-	opts := service.CreateInviteOptions{
+	opts := service.CreateClaimsOptions{
 		NotBefore: req.NotBefore.AsTime(),
 		NotAfter:  req.NotAfter.AsTime(),
 	}
-	inv, err := h.service.CreateInvite(ctx, id, opts)
+	inv, err := h.service.CreateClaims(ctx, id, opts)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
-	return &adminpb.CreateInviteReply{Invite: pb.InviteCredentialToPB(inv)}, nil
+	return &adminpb.CreateClaimsReply{Claims: pb.InviteClaimsToPB(inv)}, nil
 }
 
-func (h *UserHandler) ExportInvite(ctx context.Context, req *adminpb.ExportInviteRequest) (*adminpb.ExportInviteReply, error) {
+func (h *UserHandler) ExportClaims(ctx context.Context, req *adminpb.ExportClaimsRequest) (*adminpb.ExportClaimsReply, error) {
 	id, err := uuid.Parse(req.UserId)
 	if err != nil {
 		return nil, handler.ErrArg(err)
 	}
-	tck, err := h.service.ExportInvite(ctx, id)
+	tck, err := h.service.ExportClaims(ctx, id)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
-	return &adminpb.ExportInviteReply{Ticket: pb.InviteTicketToPB(tck)}, nil
+	return &adminpb.ExportClaimsReply{Ticket: pb.InviteTicketToPB(tck)}, nil
 }
 
 func (h *UserHandler) GetUserByID(ctx context.Context, req *adminpb.GetByIDRequest) (*adminpb.GetUserReply, error) {
@@ -79,16 +79,16 @@ func (h *UserHandler) GetUserByName(ctx context.Context, req *adminpb.GetByNameR
 	return &adminpb.GetUserReply{User: pb.UserToPB(user)}, nil
 }
 
-func (h *UserHandler) GetInviteByUserID(ctx context.Context, req *adminpb.GetByIDRequest) (*adminpb.GetInviteReply, error) {
+func (h *UserHandler) GetClaimsByUserID(ctx context.Context, req *adminpb.GetByIDRequest) (*adminpb.GetClaimsReply, error) {
 	id, err := uuid.Parse(req.Id)
 	if err != nil {
 		return nil, handler.ErrArg(err)
 	}
-	invite, err := h.service.Invites().GetByUserID(ctx, id)
+	invite, err := h.service.Claims().GetByUserID(ctx, id)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}
-	return &adminpb.GetInviteReply{Invite: pb.InviteCredentialToPB(invite)}, nil
+	return &adminpb.GetClaimsReply{Claims: pb.InviteClaimsToPB(invite)}, nil
 }
 
 func (h *UserHandler) ListUsers(ctx context.Context, req *adminpb.ListUsersRequest) (*adminpb.ListUsersReply, error) {
@@ -134,12 +134,12 @@ func (h *UserHandler) DeleteUser(ctx context.Context, req *adminpb.DeleteRequest
 	return &adminpb.DeleteReply{}, nil
 }
 
-func (h *UserHandler) DeleteInvite(ctx context.Context, req *adminpb.DeleteRequest) (*adminpb.DeleteReply, error) {
+func (h *UserHandler) DeleteClaims(ctx context.Context, req *adminpb.DeleteRequest) (*adminpb.DeleteReply, error) {
 	id, err := uuid.Parse(req.Id)
 	if err != nil {
 		return nil, handler.ErrArg(err)
 	}
-	err = h.service.Invites().Delete(ctx, id)
+	err = h.service.Claims().Delete(ctx, id)
 	if err != nil {
 		return nil, handler.ErrInternal(err)
 	}

@@ -13,16 +13,16 @@ import (
 	pb "github.com/charadev96/gonec/internal/shared/pb"
 )
 
-type ChatService struct {
-	auth *AuthService
+type Chat struct {
+	auth *Auth
 }
 
 type MessageStream struct {
 	client grpc.ServerStreamingClient[sharedpb.Message]
 }
 
-func NewChatService(a *AuthService) *ChatService {
-	return &ChatService{
+func NewChat(a *Auth) *Chat {
+	return &Chat{
 		auth: a,
 	}
 }
@@ -35,7 +35,7 @@ func (s *MessageStream) Next() (shared.Message, error) {
 	return pb.MessageFromPB(m)
 }
 
-func (s *ChatService) Send(ctx context.Context, to uuid.UUID, str string) error {
+func (s *Chat) Send(ctx context.Context, to uuid.UUID, str string) error {
 	cl, err := BindClient(s.auth, gatewaypb.NewChatServiceClient)
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func (s *ChatService) Send(ctx context.Context, to uuid.UUID, str string) error 
 	return nil
 }
 
-func (s *ChatService) Listen(ctx context.Context) (<-chan shared.Packet[shared.Message], error) {
+func (s *Chat) Listen(ctx context.Context) (<-chan shared.Packet[shared.Message], error) {
 	cl, err := BindClient(s.auth, gatewaypb.NewChatServiceClient)
 	if err != nil {
 		return nil, err

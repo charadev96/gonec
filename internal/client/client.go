@@ -26,16 +26,16 @@ type Client struct {
 	cfg Config
 	db  domain.DB
 
-	auth *service.AuthService
-	chat *service.ChatService
+	auth *service.Auth
+	chat *service.Chat
 }
 
 func New(cfg Config, db domain.DB) *Client {
 	l := zerolog.Nop()
 
 	var (
-		auth = service.NewAuthService(db.Pins)
-		chat = service.NewChatService(auth)
+		auth = service.NewAuth(db.Pins)
+		chat = service.NewChat(auth)
 	)
 
 	s := &Client{

@@ -16,9 +16,9 @@ import (
 	shared "github.com/charadev96/gonec/internal/shared/domain"
 )
 
-type UserService struct {
+type User struct {
 	users    server.UserRepository
-	invites  server.InviteCredentialRepository
+	claims   server.InviteClaimsRepository
 	nonces   server.LoginNonceRepository
 	sessions server.SessionRepository
 	txRunner shared.TransactionRunner
@@ -28,26 +28,26 @@ type UserService struct {
 	rand io.Reader
 }
 
-type UserServiceOption func(*UserService)
+type UserOption func(*User)
 
-func UserWithRand(r io.Reader) UserServiceOption {
-	return func(s *UserService) {
+func UserWithRand(r io.Reader) UserOption {
+	return func(s *User) {
 		s.rand = r
 	}
 }
 
-func NewUserService(
+func NewUser(
 	id shared.ServerIdentity,
 	usr server.UserRepository,
-	inv server.InviteCredentialRepository,
+	inv server.InviteClaimsRepository,
 	nnc server.LoginNonceRepository,
 	ses server.SessionRepository,
 	txr shared.TransactionRunner,
-	opts ...UserServiceOption,
-) *UserService {
-	s := &UserService{
+	opts ...UserOption,
+) *User {
+	s := &User{
 		users:    usr,
-		invites:  inv,
+		claims:   inv,
 		nonces:   nnc,
 		sessions: ses,
 		txRunner: txr,
@@ -62,21 +62,21 @@ func NewUserService(
 	return s
 }
 
-func (s *UserService) Users() server.UserRepository {
+func (s *User) Users() server.UserRepository {
 	return s.users
 }
 
-func (s *UserService) Invites() server.InviteCredentialRepository {
-	return s.invites
+func (s *User) Claims() server.InviteClaimsRepository {
+	return s.claims
 }
 
-type CreateInviteOptions struct {
+type CreateClaimsOptions struct {
 	NotBefore time.Time
 	NotAfter  time.Time
 }
 
-func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts CreateInviteOptions) (shared.InviteCredential, error) {
-	inv := shared.InviteCredential{}
+func (s *User) CreateClaims(ctx context.Context, id uuid.UUID, opts CreateClaimsOptions) (shared.InviteClaims, error) {
+	inv := shared.InviteClaims{}
 	if _, err := s.users.GetByID(ctx, id); err != nil && errors.Is(err, shared.ErrNotExist) {
 		return inv, fmt.Errorf("get user: %w", err)
 	}
@@ -98,21 +98,21 @@ func (s *UserService) CreateInvite(ctx context.Context, id uuid.UUID, opts Creat
 		return inv, fmt.Errorf("bad time period, NotAfter must be after NotBefore")
 	}
 
-	inv = shared.InviteCredential{
+	inv = shared.InviteClaims{
 		UserID:    id,
 		Token:     tok,
 		NotBefore: opts.NotBefore,
 		NotAfter:  opts.NotAfter,
 	}
 
-	if err := s.invites.Save(ctx, inv); err != nil {
-		return inv, fmt.Errorf("save invite: %w", err)
+	if err := s.claims.Save(ctx, inv); err != nil {
+		return inv, fmt.Errorf("save claims: %w", err)
 	}
 
 	return inv, nil
 }
 
-func (s *UserService) CreateLoginNonce(ctx context.Context, id uuid.UUID) ([]byte, error) {
+func (s *User) CreateLoginNonce(ctx context.Context, id uuid.UUID) ([]byte, error) {
 	nonce := server.LoginNonce{}
 	user, err := s.users.GetByID(ctx, id)
 	if err != nil && errors.Is(err, shared.ErrNotExist) {
@@ -141,29 +141,29 @@ func (s *UserService) CreateLoginNonce(ctx context.Context, id uuid.UUID) ([]byt
 	return tok, nil
 }
 
-func (s *UserService) ExportInvite(ctx context.Context, id uuid.UUID) (shared.InviteTicket, error) {
+func (s *User) ExportClaims(ctx context.Context, id uuid.UUID) (shared.InviteTicket, error) {
 	mnf := shared.InviteTicket{}
-	cred, err := s.invites.GetByUserID(ctx, id)
+	cl, err := s.claims.GetByUserID(ctx, id)
 	if err != nil && errors.Is(err, shared.ErrNotExist) {
-		return mnf, fmt.Errorf("get invite: %w", err)
+		return mnf, fmt.Errorf("get claims: %w", err)
 	}
 
 	mnf = shared.InviteTicket{
-		Server:     s.server,
-		Credential: cred,
+		Server: s.server,
+		Claims: cl,
 	}
 
 	return mnf, nil
 }
 
-func (s *UserService) RegisterUser(ctx context.Context, id uuid.UUID, tok []byte, pk ed25519.PublicKey) error {
+func (s *User) RegisterUser(ctx context.Context, id uuid.UUID, tok []byte, pk ed25519.PublicKey) error {
 	if _, err := s.users.GetByID(ctx, id); err != nil && errors.Is(err, shared.ErrNotExist) {
 		return fmt.Errorf("get user: %w", err)
 	}
 
-	inv, err := s.invites.GetByUserID(ctx, id)
+	inv, err := s.claims.GetByUserID(ctx, id)
 	if err != nil {
-		return fmt.Errorf("get invite: %w", err)
+		return fmt.Errorf("get claims: %w", err)
 	}
 
 	if subtle.ConstantTimeCompare(inv.Token, tok) == 0 {
@@ -193,14 +193,14 @@ func (s *UserService) RegisterUser(ctx context.Context, id uuid.UUID, tok []byte
 		if err := s.users.UpdatePublicKey(ctx, id, pk); err != nil {
 			return fmt.Errorf("update user (public key): %w", err)
 		}
-		if err := s.invites.Delete(ctx, id); err != nil {
-			return fmt.Errorf("delete invite: %w", err)
+		if err := s.claims.Delete(ctx, id); err != nil {
+			return fmt.Errorf("delete claims: %w", err)
 		}
 		return nil
 	})
 }
 
-func (s *UserService) VerifySession(ctx context.Context, sess shared.Session) error {
+func (s *User) VerifySession(ctx context.Context, sess shared.Session) error {
 	session, err := s.sessions.GetByID(ctx, sess.ID)
 	if err != nil {
 		return fmt.Errorf("get session: %w", err)
@@ -219,7 +219,7 @@ func (s *UserService) VerifySession(ctx context.Context, sess shared.Session) er
 	return nil
 }
 
-func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (shared.Session, error) {
+func (s *User) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (shared.Session, error) {
 	sess := shared.Session{}
 	user, err := s.users.GetByID(ctx, id)
 	if err != nil && errors.Is(err, shared.ErrNotExist) {
@@ -264,7 +264,7 @@ func (s *UserService) LoginUser(ctx context.Context, id uuid.UUID, sig []byte) (
 	return sess, nil
 }
 
-func (s *UserService) LogoutUser(ctx context.Context, sess shared.Session) error {
+func (s *User) LogoutUser(ctx context.Context, sess shared.Session) error {
 	if err := s.VerifySession(ctx, sess); err != nil {
 		return fmt.Errorf("verify session: %w", err)
 	}
@@ -275,13 +275,13 @@ func (s *UserService) LogoutUser(ctx context.Context, sess shared.Session) error
 	return nil
 }
 
-func (s *UserService) DeleteUser(ctx context.Context, id uuid.UUID) error {
+func (s *User) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	return s.txRunner.Exec(ctx, func(ctx context.Context) error {
 		if err := s.users.Delete(ctx, id); err != nil {
 			return fmt.Errorf("delete user: %w", err)
 		}
-		if err := s.invites.Delete(ctx, id); err != nil {
-			return fmt.Errorf("delete invite: %w", err)
+		if err := s.claims.Delete(ctx, id); err != nil {
+			return fmt.Errorf("delete claims: %w", err)
 		}
 		if err := s.sessions.Delete(ctx, id); err != nil {
 			return fmt.Errorf("delete session: %w", err)

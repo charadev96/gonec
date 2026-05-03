@@ -19,10 +19,10 @@ type ChatHandler struct {
 	userpb.UnimplementedChatServiceServer
 
 	ctx     context.Context
-	service *service.ChatService
+	service *service.Chat
 }
 
-func NewChatHandler(ctx context.Context, s *service.ChatService) *ChatHandler {
+func NewChatHandler(ctx context.Context, s *service.Chat) *ChatHandler {
 	return &ChatHandler{
 		ctx:     ctx,
 		service: s,

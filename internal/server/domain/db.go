@@ -5,7 +5,7 @@ import (
 )
 
 type DB struct {
-	Invites  InviteCredentialRepository
+	Claims   InviteClaimsRepository
 	Nonces   LoginNonceRepository
 	Sessions SessionRepository
 	Users    UserRepository

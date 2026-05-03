@@ -14,12 +14,12 @@ import (
 	"github.com/charadev96/gonec/internal/shared/infra"
 )
 
-type BunLoginNonceRepository struct {
+type BunLoginNonce struct {
 	db *bun.DB
 }
 
-func NewBunLoginNonceRepository(ctx context.Context, db *bun.DB) (*BunLoginNonceRepository, error) {
-	r := &BunLoginNonceRepository{
+func NewBunLoginNonce(ctx context.Context, db *bun.DB) (*BunLoginNonce, error) {
+	r := &BunLoginNonce{
 		db: db,
 	}
 	tx := infra.ExtractTx(ctx, r.db)
@@ -33,7 +33,7 @@ func NewBunLoginNonceRepository(ctx context.Context, db *bun.DB) (*BunLoginNonce
 	return r, nil
 }
 
-func (r *BunLoginNonceRepository) Save(ctx context.Context, nonce server.LoginNonce) error {
+func (r *BunLoginNonce) Save(ctx context.Context, nonce server.LoginNonce) error {
 	tx := infra.ExtractTx(ctx, r.db)
 	n := nonceToDB(nonce)
 	_, err := tx.NewInsert().
@@ -46,7 +46,7 @@ func (r *BunLoginNonceRepository) Save(ctx context.Context, nonce server.LoginNo
 	return nil
 }
 
-func (r *BunLoginNonceRepository) Consume(ctx context.Context, id uuid.UUID) (server.LoginNonce, error) {
+func (r *BunLoginNonce) Consume(ctx context.Context, id uuid.UUID) (server.LoginNonce, error) {
 	tx := infra.ExtractTx(ctx, r.db)
 	n := &loginNonce{}
 	err := tx.NewSelect().

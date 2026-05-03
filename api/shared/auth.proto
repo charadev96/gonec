@@ -11,7 +11,7 @@ message ServerIdentity {
   bytes public_key = 2;
 }
 
-message InviteCredential {
+message InviteClaims {
   string user_id = 1;
   bytes token = 2;
   google.protobuf.Timestamp not_before = 3;
@@ -20,7 +20,7 @@ message InviteCredential {
 
 message InviteTicket {
   ServerIdentity server = 1;
-  InviteCredential credential = 2;
+  InviteClaims claims = 2;
 }
 
 message Session {

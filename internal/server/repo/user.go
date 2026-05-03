@@ -14,12 +14,12 @@ import (
 	"github.com/charadev96/gonec/internal/shared/infra"
 )
 
-type BunUserRepository struct {
+type BunUser struct {
 	db *bun.DB
 }
 
-func NewBunUserRepository(ctx context.Context, db *bun.DB) (*BunUserRepository, error) {
-	r := &BunUserRepository{
+func NewBunUser(ctx context.Context, db *bun.DB) (*BunUser, error) {
+	r := &BunUser{
 		db: db,
 	}
 	tx := infra.ExtractTx(ctx, r.db)
@@ -33,7 +33,7 @@ func NewBunUserRepository(ctx context.Context, db *bun.DB) (*BunUserRepository, 
 	return r, nil
 }
 
-func (r *BunUserRepository) Create(ctx context.Context) (uuid.UUID, error) {
+func (r *BunUser) Create(ctx context.Context) (uuid.UUID, error) {
 	tx := infra.ExtractTx(ctx, r.db)
 	id := uuid.New()
 	u := &user{ID: id}
@@ -46,7 +46,7 @@ func (r *BunUserRepository) Create(ctx context.Context) (uuid.UUID, error) {
 	return id, nil
 }
 
-func (r *BunUserRepository) GetByID(ctx context.Context, id uuid.UUID) (server.User, error) {
+func (r *BunUser) GetByID(ctx context.Context, id uuid.UUID) (server.User, error) {
 	tx := infra.ExtractTx(ctx, r.db)
 	u := &user{}
 	err := tx.NewSelect().
@@ -62,7 +62,7 @@ func (r *BunUserRepository) GetByID(ctx context.Context, id uuid.UUID) (server.U
 	return userFromDB(*u), nil
 }
 
-func (r *BunUserRepository) GetByName(ctx context.Context, name string) (server.User, error) {
+func (r *BunUser) GetByName(ctx context.Context, name string) (server.User, error) {
 	tx := infra.ExtractTx(ctx, r.db)
 	u := &user{}
 	err := tx.NewSelect().
@@ -78,7 +78,7 @@ func (r *BunUserRepository) GetByName(ctx context.Context, name string) (server.
 	return userFromDB(*u), nil
 }
 
-func (r *BunUserRepository) List(ctx context.Context, q server.UserListQuery) (server.UserList, error) {
+func (r *BunUser) List(ctx context.Context, q server.UserListQuery) (server.UserList, error) {
 	var users []server.User
 	if q.Limit < 1 {
 		q.Limit = 50
@@ -105,7 +105,7 @@ func (r *BunUserRepository) List(ctx context.Context, q server.UserListQuery) (s
 	}, nil
 }
 
-func (r *BunUserRepository) UpdateName(ctx context.Context, id uuid.UUID, name string) error {
+func (r *BunUser) UpdateName(ctx context.Context, id uuid.UUID, name string) error {
 	tx := infra.ExtractTx(ctx, r.db)
 	u := &user{ID: id, Name: name}
 	_, err := tx.NewUpdate().
@@ -119,7 +119,7 @@ func (r *BunUserRepository) UpdateName(ctx context.Context, id uuid.UUID, name s
 	return nil
 }
 
-func (r *BunUserRepository) UpdatePublicKey(ctx context.Context, id uuid.UUID, pk ed25519.PublicKey) error {
+func (r *BunUser) UpdatePublicKey(ctx context.Context, id uuid.UUID, pk ed25519.PublicKey) error {
 	tx := infra.ExtractTx(ctx, r.db)
 	u := &user{ID: id, PublicKey: pk}
 	_, err := tx.NewUpdate().
@@ -133,7 +133,7 @@ func (r *BunUserRepository) UpdatePublicKey(ctx context.Context, id uuid.UUID, p
 	return nil
 }
 
-func (r *BunUserRepository) UpdateState(ctx context.Context, id uuid.UUID, s server.UserState) error {
+func (r *BunUser) UpdateState(ctx context.Context, id uuid.UUID, s server.UserState) error {
 	tx := infra.ExtractTx(ctx, r.db)
 	u := &user{ID: id, State: s}
 	_, err := tx.NewUpdate().
@@ -147,7 +147,7 @@ func (r *BunUserRepository) UpdateState(ctx context.Context, id uuid.UUID, s ser
 	return nil
 }
 
-func (r *BunUserRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *BunUser) Delete(ctx context.Context, id uuid.UUID) error {
 	tx := infra.ExtractTx(ctx, r.db)
 	u := &user{ID: id}
 	_, err := tx.NewDelete().
@@ -161,8 +161,6 @@ func (r *BunUserRepository) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 type user struct {
-	bun.BaseModel `bun:"table:users"`
-
 	ID        uuid.UUID         `bun:",pk"`
 	Name      string            `bun:",unique,nullzero"`
 	PublicKey ed25519.PublicKey `bun:",unique,nullzero"`
