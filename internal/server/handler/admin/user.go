@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	adminpb "github.com/charadev96/gonec/gen/admin"
+	adminpb "github.com/charadev96/gonec/gen/gonec/admin/v1"
 	server "github.com/charadev96/gonec/internal/server/domain"
 	"github.com/charadev96/gonec/internal/server/service"
 	"github.com/charadev96/gonec/internal/shared/handler"

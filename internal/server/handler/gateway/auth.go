@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	gatewaypb "github.com/charadev96/gonec/gen/gateway"
+	gatewaypb "github.com/charadev96/gonec/gen/gonec/gateway/v1"
 	"github.com/charadev96/gonec/internal/server/service"
 	shared "github.com/charadev96/gonec/internal/shared/domain"
 	"github.com/charadev96/gonec/internal/shared/handler"

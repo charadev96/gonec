@@ -5,21 +5,13 @@ tasks:
     desc: Build all go packages
     cmds: [go build ./...]
 
-  gen:protobuf:
-    desc: Generate protobuf go stubs
+  gen:
+    desc: Generate protobuf implementations
     sources:
       - api/**/*.proto
     generates:
       - gen/**/*.go
-    cmds:
-      - |
-        protoc \
-        --proto_path={{.ROOT_DIR}}/api \
-        --go_out={{.ROOT_DIR}}/gen \
-        --go_opt=paths=source_relative \
-        --go-grpc_out={{.ROOT_DIR}}/gen \
-        --go-grpc_opt=paths=source_relative \
-        {{.ROOT_DIR}}/api/**/*.proto
+    cmds: [buf generate]
 
   fmt:
     desc: Format source files

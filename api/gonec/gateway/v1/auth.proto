@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package gonec.gateway.v1;
+
+import "gonec/shared/v1/auth.proto";
+
+service AuthService {
+  rpc Register(RegisterRequest) returns (RegisterReply);
+  rpc InitiateLogin(InitiateLoginRequest) returns (InitiateLoginReply);
+  rpc CompleteLogin(CompleteLoginRequest) returns (CompleteLoginReply);
+  rpc Logout(LogoutRequest) returns (LogoutReply);
+}
+
+message RegisterRequest {
+  string user_id = 1;
+  bytes token = 2;
+  bytes public_key = 3;
+}
+
+message RegisterReply {}
+
+message InitiateLoginRequest {
+  string user_id = 1;
+}
+
+message InitiateLoginReply {
+  bytes nonce = 1;
+}
+
+message CompleteLoginRequest {
+  string user_id = 1;
+  bytes signature = 2;
+}
+
+message CompleteLoginReply {
+  shared.v1.Session auth = 1;
+}
+
+message LogoutRequest {
+  shared.v1.Session auth = 1;
+}
+
+message LogoutReply {}

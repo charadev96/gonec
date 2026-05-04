@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package gonec.user.v1;
+
+import "gonec/shared/v1/chat.proto";
+
+service ChatService {
+  rpc Send(SendRequest) returns (SendReply);
+  rpc Listen(ListenRequest) returns (stream shared.v1.Message);
+}
+
+message SendRequest {
+  string recipient = 2;
+  string content = 3;
+}
+
+message SendReply {}
+
+message ListenRequest {}

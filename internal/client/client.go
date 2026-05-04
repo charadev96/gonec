@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 
-	userpb "github.com/charadev96/gonec/gen/user"
+	userpb "github.com/charadev96/gonec/gen/gonec/user/v1"
 	"github.com/charadev96/gonec/internal/client/domain"
 	user "github.com/charadev96/gonec/internal/client/handler/user"
 	"github.com/charadev96/gonec/internal/client/service"

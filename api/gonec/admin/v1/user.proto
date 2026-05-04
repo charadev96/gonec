@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package gonec.admin.v1;
+
+import "google/protobuf/timestamp.proto";
+import "gonec/shared/v1/auth.proto";
+
+service UserService {
+  rpc CreateUser(CreateUserRequest) returns (CreateUserReply);
+  rpc CreateClaims(CreateClaimsRequest) returns (CreateClaimsReply);
+
+  rpc ExportClaims(ExportClaimsRequest) returns (ExportClaimsReply);
+
+  rpc GetUserByID(GetByIDRequest) returns (GetUserReply);
+  rpc GetUserByName(GetByNameRequest) returns (GetUserReply);
+  rpc GetClaimsByUserID(GetByIDRequest) returns (GetClaimsReply);
+
+  rpc ListUsers(ListUsersRequest) returns (ListUsersReply);
+
+  rpc DeleteUser(DeleteRequest) returns (DeleteReply);
+  rpc DeleteClaims(DeleteRequest) returns (DeleteReply);
+}
+
+enum UserState {
+  USER_STATE_PENDING_UNSPECIFIED = 0;
+  USER_STATE_REGISTERED = 1;
+  USER_STATE_ACTIVE = 2;
+}
+
+message User {
+  string id = 1;
+  string name = 2;
+  bytes public_key = 3;
+  UserState state = 4;
+}
+
+message CreateUserRequest {}
+
+message CreateUserReply {
+  string user_id = 1;
+}
+
+message CreateClaimsRequest {
+  string user_id = 1;
+  google.protobuf.Timestamp not_before = 2;
+  google.protobuf.Timestamp not_after = 3;
+}
+
+message CreateClaimsReply {
+  shared.v1.InviteClaims claims = 1;
+}
+
+message ExportClaimsRequest {
+  string user_id = 1;
+}
+
+message ExportClaimsReply {
+  shared.v1.InviteTicket ticket = 1;
+}
+
+message GetByIDRequest {
+  string id = 1;
+}
+
+message GetByNameRequest {
+  string name = 2;
+}
+
+message GetUserReply {
+  User user = 1;
+}
+
+message GetClaimsReply {
+  shared.v1.InviteClaims claims = 1;
+}
+
+message ListUsersRequest {
+  uint32 limit = 1;
+  string cursor = 2;
+}
+
+message ListUsersReply {
+  repeated User users = 1;
+  string cursor = 2;
+}
+
+message DeleteRequest {
+  string id = 1;
+}
+
+message DeleteReply {}

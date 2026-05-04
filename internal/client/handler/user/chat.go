@@ -6,8 +6,8 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 
-	sharedpb "github.com/charadev96/gonec/gen/shared"
-	userpb "github.com/charadev96/gonec/gen/user"
+	sharedpb "github.com/charadev96/gonec/gen/gonec/shared/v1"
+	userpb "github.com/charadev96/gonec/gen/gonec/user/v1"
 	"github.com/charadev96/gonec/internal/client/service"
 	"github.com/charadev96/gonec/internal/shared/handler"
 	pb "github.com/charadev96/gonec/internal/shared/pb"

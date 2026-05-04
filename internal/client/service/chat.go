@@ -7,8 +7,8 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 
-	gatewaypb "github.com/charadev96/gonec/gen/gateway"
-	sharedpb "github.com/charadev96/gonec/gen/shared"
+	gatewaypb "github.com/charadev96/gonec/gen/gonec/gateway/v1"
+	sharedpb "github.com/charadev96/gonec/gen/gonec/shared/v1"
 	shared "github.com/charadev96/gonec/internal/shared/domain"
 	pb "github.com/charadev96/gonec/internal/shared/pb"
 )

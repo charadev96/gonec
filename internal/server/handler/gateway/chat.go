@@ -5,8 +5,8 @@ import (
 
 	"google.golang.org/grpc"
 
-	gatewaypb "github.com/charadev96/gonec/gen/gateway"
-	sharedpb "github.com/charadev96/gonec/gen/shared"
+	gatewaypb "github.com/charadev96/gonec/gen/gonec/gateway/v1"
+	sharedpb "github.com/charadev96/gonec/gen/gonec/shared/v1"
 	"github.com/charadev96/gonec/internal/server/service"
 	shared "github.com/charadev96/gonec/internal/shared/domain"
 	"github.com/charadev96/gonec/internal/shared/handler"

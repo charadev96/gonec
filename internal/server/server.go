@@ -13,8 +13,8 @@ import (
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 
-	adminpb "github.com/charadev96/gonec/gen/admin"
-	gatewaypb "github.com/charadev96/gonec/gen/gateway"
+	adminpb "github.com/charadev96/gonec/gen/gonec/admin/v1"
+	gatewaypb "github.com/charadev96/gonec/gen/gonec/gateway/v1"
 	"github.com/charadev96/gonec/internal/server/cert"
 	"github.com/charadev96/gonec/internal/server/domain"
 	admin "github.com/charadev96/gonec/internal/server/handler/admin"

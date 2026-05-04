@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 
-	userpb "github.com/charadev96/gonec/gen/user"
+	userpb "github.com/charadev96/gonec/gen/gonec/user/v1"
 	"github.com/charadev96/gonec/internal/client/service"
 	"github.com/charadev96/gonec/internal/shared/handler"
 	pb "github.com/charadev96/gonec/internal/shared/pb"

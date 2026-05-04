@@ -3,7 +3,7 @@ package shared
 import (
 	"time"
 
-	sharedpb "github.com/charadev96/gonec/gen/shared"
+	sharedpb "github.com/charadev96/gonec/gen/gonec/shared/v1"
 	shared "github.com/charadev96/gonec/internal/shared/domain"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )

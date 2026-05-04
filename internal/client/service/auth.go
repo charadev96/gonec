@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	gatewaypb "github.com/charadev96/gonec/gen/gateway"
+	gatewaypb "github.com/charadev96/gonec/gen/gonec/gateway/v1"
 	client "github.com/charadev96/gonec/internal/client/domain"
 	shared "github.com/charadev96/gonec/internal/shared/domain"
 	pb "github.com/charadev96/gonec/internal/shared/pb"
